@@ -9,16 +9,24 @@ describe('GraphQL endpoint', function () {
         query: '{\n\t__schema{\n queryType {\n fields{\n name\n }\n }\n }\n}',
       })
       .set('Accept', 'application/json')
-      // TODO: fix redirection
-      .expect(302)
+      .expect(200)
       .end(function (err, res) {
         if (err) return done(err)
-        console.log(res)
+        if (!res.text.includes('test_table')) {
+          console.error(res.text)
+          throw new Error('missing test_table in schema')
+        }
         done()
       })
   })
 
-  it('should fail', function (done) {
+  /*
+  FIXME: the test fail right now, because hasura returns 200 status even
+    when not found the requested resource (wraps the 404 response into 200
+    response, see error-log.json (the relevant logs from hasura container)
+    file for more details
+   */
+  it('should return 404 for non existing columns', function (done) {
     const query = `
       query MyQuery {
         test_table_aggregate {
@@ -29,6 +37,6 @@ describe('GraphQL endpoint', function () {
       }
     `
 
-    request(app).post('/v1/graphql').send({ query }).expect(200, done)
+    request(app).post('/v1/graphql').send({ query }).expect(404, done)
   })
 })

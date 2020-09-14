@@ -4,12 +4,15 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "test": "mocha --recursive"
+    "test": "mocha --recursive",
+    "test:integration": "mocha --recursive \"./test/integration/*.js\"",
+    "test:unit": "mocha --recursive \"./test/unit/*.js\""
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
+    "express-http-proxy": "^1.6.2",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1"
   },

@@ -3,6 +3,8 @@ var express = require('express')
 var path = require('path')
 var cookieParser = require('cookie-parser')
 var logger = require('morgan')
+var proxy = require('express-http-proxy')
+const url = require('url')
 
 var indexRouter = require('./routes/index')
 
@@ -17,11 +19,14 @@ app.use(cookieParser())
 
 app.use('/', indexRouter)
 
-// TODO: extract to env
+// TODO: extract url to env
 // TODO: maybe moving redirection out of nodejs
-app.use('/v1/graphql', function (req, res, next) {
-  res.redirect('http://127.0.0.1:8080/v1/graphql')
-})
+app.use(
+  '/v1/graphql',
+  proxy('http://localhost:8080/v1/graphql/', {
+    proxyReqPathResolver: (req) => url.parse(req.baseUrl).path,
+  })
+)
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
