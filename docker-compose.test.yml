@@ -10,7 +10,7 @@ services:
     environment:
       NODE_ENV: test
       HASURA_URL: http://graphql-engine:8080
-    command: sh -c './wait-for graphql-engine:8080 -- yarn test'
+    command: sh -c './wait-for-it.sh graphql-engine:8080 -- yarn test'
 
   graphql-engine:
     build:
@@ -30,6 +30,11 @@ services:
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
       ## uncomment next line to set an admin secret
       # HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://graphql-engine:8080/healthz" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
   db:
     image: postgres
     ports:

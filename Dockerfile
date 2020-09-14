@@ -18,7 +18,6 @@ RUN yarn
 # If you are building your code for production
 # RUN npm ci --only=production
 
-RUN apt-get -q update && apt-get -qy install netcat
-RUN ["chmod", "+x", "./wait-for"]
+RUN ["chmod", "+x", "./wait-for-it.sh"]
 
 CMD [ "yarn", "start" ]
