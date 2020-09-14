@@ -10,7 +10,7 @@ services:
     environment:
       NODE_ENV: test
       HASURA_URL: http://graphql-engine:8080
-    command: ["yarn", "test"]
+    command: sh -c './wait-for graphql-engine:8080 -- yarn test'
 
   graphql-engine:
     build:
