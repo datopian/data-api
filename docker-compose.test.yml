@@ -1,0 +1,39 @@
+version: '2'
+
+services:
+
+  sut:
+    build: .
+    depends_on:
+      - graphql-engine
+      - db
+    environment:
+      NODE_ENV: test
+    command: ["yarn", "test"]
+
+  graphql-engine:
+    build:
+      context: environment/hasura/
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    restart: always
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://ckan_default:password@db:5432/datastore_default
+      ## enable the console served by server
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
+      ## enable debugging mode. It is recommended to disable this in production
+      HASURA_GRAPHQL_DEV_MODE: "true"
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      ## uncomment next line to set an admin secret
+      # HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
+  db:
+    image: postgres
+    ports:
+      - "5555:5432"
+    environment:
+      POSTGRES_DB: datastore_default
+      POSTGRES_USER: ckan_default
+      POSTGRES_PASSWORD: password
