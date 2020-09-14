@@ -1,3 +1,4 @@
+require('dotenv').config()
 var createError = require('http-errors')
 var express = require('express')
 var path = require('path')
@@ -19,11 +20,10 @@ app.use(cookieParser())
 
 app.use('/', indexRouter)
 
-// TODO: extract url to env
 // TODO: maybe moving redirection out of nodejs
 app.use(
   '/v1/graphql',
-  proxy('http://localhost:8080/v1/graphql/', {
+  proxy(process.env.HASURA_URL, {
     proxyReqPathResolver: (req) => url.parse(req.baseUrl).path,
   })
 )

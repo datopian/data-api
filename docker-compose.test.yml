@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 
 services:
 
@@ -9,6 +9,7 @@ services:
       - db
     environment:
       NODE_ENV: test
+      HASURA_URL: http://graphql-engine:8080
     command: ["yarn", "test"]
 
   graphql-engine:
