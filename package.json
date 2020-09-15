@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "start": "node -r dotenv/config ./bin/www",
-    "test": "mocha --recursive",
-    "test:integration": "mocha --recursive \"./test/integration/*.js\"",
-    "test:unit": "mocha --recursive \"./test/unit/*.js\""
+    "test": "mocha -r dotenv/config --recursive",
+    "test:integration": "mocha -r dotenv/config --recursive \"./test/integration/*.js\"",
+    "test:unit": "mocha -r dotenv/config --recursive \"./test/unit/*.js\""
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
