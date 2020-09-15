@@ -1,0 +1,30 @@
+{
+  "type": "http-log",
+  "timestamp": "2020-09-14T07:48:02.075+0000",
+  "level": "error",
+  "detail": {
+    "operation": {
+      "user_vars": {
+        "x-hasura-role": "admin"
+      },
+      "error": {
+        "path": "$.selectionSet.test_table_aggregate.selectionSet.aggregate.selectionSet.absent_column",
+        "error": "field \"absent_column\" not found in type: 'test_table_aggregate_fields'",
+        "code": "validation-failed"
+      },
+      "request_id": "6d4133b1-0e23-4ce5-b509-0091e441b708",
+      "response_size": 206,
+      "query": {
+        "query": "\n query MyQuery {\n test_table_aggregate {\n aggregate {\n absent_column\n }\n }\n }\n "
+      }
+    },
+    "http_info": {
+      "status": 200,
+      "http_version": "HTTP/1.1",
+      "url": "/v1/graphql",
+      "ip": "172.19.0.1",
+      "method": "POST",
+      "content_encoding": null
+    }
+  }
+}
