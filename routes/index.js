@@ -30,7 +30,7 @@ async function getGraphQLTableSchema(resource_id) {
   // return request(`${process.env.HASURA_URL}/v1/graphql`, queryForSchema)
   try {
     const schemaPrep = await request(`${process.env.HASURA_URL}/v1/graphql`, queryForSchema)
-    console.log(JSON.stringify(schemaPrep, null, 2))  // TODO erase log
+//    console.log(JSON.stringify(schemaPrep, null, 2))  // TODO erase log
     schema = schemaPrep.__type
   } catch (e) {
     console.error(e)
@@ -42,6 +42,8 @@ async function getGraphQLTableSchema(resource_id) {
 
 /* Creates a nice json from the GraphQL schema to return with the response to the end user */ 
 function getFieldsFromGQLSchema(gqlSchema){
+//  console.log("GQL Schema : "+ JSON.stringify(gqlSchema))
+//  console.log("GQL Schema FIELDS: "+ JSON.stringify(gqlSchema.fields))
   return gqlSchema.fields.map(e => e.name)
 }
 
@@ -89,8 +91,14 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
   /* parse req */
 
   try {
+
+    if(!('resource_id' in req.query)){
+      res.send({
+          status:200,
+          help:"HERE THE DOCUMENTATION, you have a missing parameter"
+        })  // TODO return a meaningful response, maybe the documentation
+      }
     const table = req.query.resource_id
-    // TODO react on no resource_id
 
     let gqlSchema = await getGraphQLTableSchema(table)
     // console.log("GQL Schema : "+ JSON.stringify(gqlSchema))
@@ -106,8 +114,7 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
   
     const resData = await request(`${process.env.HASURA_URL}/v1/graphql`, queryForData)
   
-    // console.log(JSON.stringify(data))
-  
+    // console.log(JSON.stringify(resData))
     res.send({
       schema: beautifyGQLSchema(gqlSchema),
       data: resData

@@ -42,8 +42,15 @@ describe('datastore_search endpoint', function () {
           return done(err)
         }
         const jsonResp = JSON.parse(res.text)
-        if (!(jsonResp.data.length === process.env.DEFAULT_ROW_LIMIT)) {
-          done('response length is not correct')
+//        console.log("JSON response: " + JSON.stringify(jsonResp))
+//        console.log("JSON response: " + JSON.stringify(jsonResp.data)
+//        jsonResp.data[`${TEST_TABLE_NAME}`]
+//        console.log("JSON response: " + JSON.stringify(jsonResp.data[`${TEST_TABLE_NAME}`]))
+//        console.log("JSON response: " + JSON.stringify(jsonResp.data[`${TEST_TABLE_NAME}`]))
+//        console.log("JSON data response length: " + jsonResp.data[`${TEST_TABLE_NAME}`].length)
+
+        if (!(jsonResp.data[`${TEST_TABLE_NAME}`].length == process.env.DEFAULT_ROW_LIMIT)) {
+          return done('response length is not correct')
         }
         return done()
       })
