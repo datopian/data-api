@@ -1,5 +1,6 @@
 var express = require('express')
 var router = express.Router()
+const { request, gql } = require('graphql-request')
 
 
 const { Pool, Client } = require('pg')
@@ -9,6 +10,67 @@ const pool = new Pool({
 
 const APP_VERSION = 'v1.1'
 
+/* Gets the schema from a GraphQL*/
+async function getGraphQLTableSchema(resource_id) {
+  console.log(resource_id)
+
+  const queryForSchema = gql`
+  {
+    __type(name: "${resource_id}") {
+      name
+      fields {
+        name
+        type {
+          name
+        }
+      }
+    }
+  }
+`
+  // return request(`${process.env.HASURA_URL}/v1/graphql`, queryForSchema)
+  try {
+    const schemaPrep = await request(`${process.env.HASURA_URL}/v1/graphql`, queryForSchema)
+    console.log(JSON.stringify(schemaPrep, null, 2))  // TODO erase log
+    schema = schemaPrep.__type
+  } catch (e) {
+    console.error(e)
+    throw e
+  }
+
+  return schema
+}
+
+/* Creates a nice json from the GraphQL schema to return with the response to the end user */ 
+function getFieldsFromGQLSchema(gqlSchema){
+  return gqlSchema.fields.map(e => e.name)
+}
+
+/* Creates a nice json from the GraphQL schema to return with the response to the end user */ 
+function beautifyGQLSchema(gqlSchema){
+  return {
+    name: gqlSchema.name,
+    fields: gqlSchema.fields.map(f => { 
+      return{
+        name: f.name,
+        type: f.type.name
+      }
+    })
+  }
+}
+
+function createQuery(table, fieldNames, limit){
+
+  const columns = fieldNames.join('\n')
+
+  let query = gql`
+    {
+      ${table}(limit: ${limit || process.env.DEFAULT_ROW_LIMIT || 10}) {
+        ${columns}
+      }
+    }
+    `
+  return query
+}
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -17,7 +79,7 @@ router.get('/', function (req, res, next) {
 
 
 /* GET . */
-router.get(`/${APP_VERSION}/datastore_search`, function (req, res, next) {
+router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
   /*TODO*/
   /* Auth handling  ... maybe JWT? */
   /* query DB */
@@ -25,30 +87,35 @@ router.get(`/${APP_VERSION}/datastore_search`, function (req, res, next) {
   /* form result JSON */
 
   /* parse req */
-  const resource_id = req.query.resource_id
-  // TODO react on no resource_id
 
-  console.log(req)
-  console.log('query: ' + req.query)
-  pool
-    .query('SELECT * FROM $1 LIMIT 100', [resource_id])
-    .then(result => {
-      // Convert pg.Result to JSON
+  try {
+    const table = req.query.resource_id
+    // TODO react on no resource_id
 
-      // TODO: prep schema
+    let gqlSchema = await getGraphQLTableSchema(table)
+    // console.log("GQL Schema : "+ JSON.stringify(gqlSchema))
+  
+    let tableFields = getFieldsFromGQLSchema(gqlSchema)
+    // console.log("Table Fields: "+tableFields)
+    
+    // console.log("BeautyFields: "+beautifyGQLSchema(gqlSchema))
 
+    const queryForData = createQuery(table, tableFields)
 
-      console.log('pg result: ', result)
+    console.log(queryForData)
+  
+    const resData = await request(`${process.env.HASURA_URL}/v1/graphql`, queryForData)
+  
+    // console.log(JSON.stringify(data))
+  
+    res.send({
+      schema: beautifyGQLSchema(gqlSchema),
+      data: resData
+    })
+  } catch (e) {
+    console.error(e)
+  }
 
-      res.send({
-        data: result
-      })
-    })  
-    .catch(err => console.error('Error executing query', err.stack))
-
-  // client.release()
-  // res.send(result)
-  res.send(200)
 })
 
 module.exports = router
