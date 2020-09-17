@@ -41,23 +41,6 @@ async function getGraphQLTableSchema(resource_id) {
 }
 
 /* Creates a nice json from the GraphQL schema to return with the response to the end user */
-function getFieldTypesFromGQLSchema(gqlSchema) {
-   console.log("GQL Schema Types : "+ JSON.stringify(gqlSchema))
-  //  console.log("GQL Schema FIELDS: "+ JSON.stringify(gqlSchema.fields))
-  function gqlType2jsType(typeName) {
-    jsType = typeName
-    if (typeName.toLowerCase().includes('float')){
-      jsType = 'Float'
-    }
-    // else if ... 
-    // TODO other types that might be a problem ... 
-    return jsType
-
-  }
-  return gqlSchema.fields.map(e => e.name, gqlType2jsType(e.type.name))
-}
-
-/* Creates a nice json from the GraphQL schema to return with the response to the end user */
 function getFieldsFromGQLSchema(gqlSchema) {
   //  console.log("GQL Schema : "+ JSON.stringify(gqlSchema))
   //  console.log("GQL Schema FIELDS: "+ JSON.stringify(gqlSchema.fields))
@@ -95,35 +78,28 @@ function createQuery(table, fieldNames, limit) {
 function q2gql(q, table, fieldNames, limit, schema) {
 
   console.log("Input Q = " + q)
+  function colEq(column, value, valueType) {
 
-  // console.log("Schema2: " + JSON.stringify(getFieldTypesFromGQLSchema(schema)))
-  console.log("Schema2: " + getFieldTypesFromGQLSchema(schema))
+    switch (valueType) {
+      case "Int":
+        eqStatement = `${value}`;
+        break;
+      case "Float":
+        eqStatement = `${value}`;
+        break;
+      case "Boolean":
+        eqStatement = `${value}`;
+        break;
+      default:
+        eqStatement = `"${value}"`;
+    }
+    // const eqStatement = isNaN(value)  ?  `"${value}"`  : `${value}`
+    // const eqStatement = typeof(value) == "number"  ?  `"${value}"`  : `${value}`
 
-  // function colEq(column, value, valueType) {
+    return `${column}: { _eq: ${eqStatement}}`
 
-  //   switch (valueType) {
-  //     case "Int":
-  //       eqStatement = `${value}`;
-  //       break;
-  //     case "Float":
-  //       eqStatement = `${value}`;
-  //       break;
-  //     case "Boolean":
-  //       eqStatement = `${value}`;
-  //       break;
-  //     default:
-  //       eqStatement = `"${value}"`;
-  //   }
-  //   // const eqStatement = isNaN(value)  ?  `"${value}"`  : `${value}`
-  //   // const eqStatement = typeof(value) == "number"  ?  `"${value}"`  : `${value}`
-
-  //   return `${column}: { _eq: ${eqStatement}}`
-
-  // }
-
-  function colEq(column, value) {
-    return `${column}: { _eq: ${value}}`
   }
+
   // parse q 
   const qp = JSON.parse(q)
   console.log("Parsed Q = " + JSON.stringify(qp))
@@ -132,7 +108,7 @@ function q2gql(q, table, fieldNames, limit, schema) {
   const whereClauses = Object.keys(qp).map((k) => colEq(k, qp[k]))
   const whereStatement = `where: {${whereClauses.join(',')}}`
   const columns = fieldNames.join('\n')
-
+  // const limit = 100
   // let query = gql`
   //   {
   //     ${table}(${whereStatement}, limit: ${limit || process.env.DEFAULT_ROW_LIMIT || 10} ){
@@ -140,7 +116,6 @@ function q2gql(q, table, fieldNames, limit, schema) {
   //     }
   //   }
   //   `
-
   let query = gql`
   {
     $table(where { text_column: { _eq: "11111111111111111111111111111111"},
@@ -155,9 +130,29 @@ function q2gql(q, table, fieldNames, limit, schema) {
   }
   `
 
+  // let query = gql`
+  //   {
+  //     $table($whereStatement, limit: 100 } ){
+  //       $columns
+  //     }
+  //   }
+  //   `
+
+  // const query = gql`
+  // query getMovie($title: String!) {
+  //   Movie(title: $title) {
+  //     releaseDate
+  //     actors {
+  //       name
+  //     }
+  //   }
+  // }
+  // `
 
   const variables = {
-    title: 'Inception',
+    table: table,
+    whereStatement: whereStatement,
+    limit: limit
   }
 
   console.log("Generated Query = " + query)
@@ -182,12 +177,12 @@ router.get('/', function (req, res, next) {
 
 */
 
-router.get(`/${APP_VERSION}/datastore_search/help`, function (req, res, next) {
+router.get(`/ ${APP_VERSION}/datastore_search/help`, function (req, res, next) {
   res.send('TODO this is the API help')
 })
 
 /* GET . */
-router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
+router.get(`/ ${APP_VERSION} /datastore_search`, async function (req, res, next) {
   /*TODO*/
   /* Auth handling  ... maybe JWT? */
   /* query DB */
@@ -205,24 +200,23 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
     const table = req.query.resource_id
 
     let gqlSchema = await getGraphQLTableSchema(table)
-    console.log("GQL Schema : "+ JSON.stringify(gqlSchema))
+    // console.log("GQL Schema : "+ JSON.stringify(gqlSchema))
 
     let tableFields = getFieldsFromGQLSchema(gqlSchema)
-    // console.log("Table Fields: "+tableFields)
+    console.log("Table Fields: " + tableFields)
 
-    console.log("BeautyFields: "+beautifyGQLSchema(gqlSchema))
+    console.log("BeautyFields: " + beautifyGQLSchema(gqlSchema))
 
     let queryForData = createQuery(table, tableFields)
     if ('q' in req.query) {
-      queryForData = q2gql(req.query.q, table, tableFields, schema)
+      queryForData = q2gql(req.query.q, table, tableFields)
     }
 
     console.log("Constructed query = " + queryForData)
 
-    const resData = await request(`${process.env.HASURA_URL}/v1/graphql`, queryForData)
-    // const resData = await request(`${process.env.HASURA_URL}/v1/graphql`, queryForData, {table: table})
+    // const resData = await request(`${process.env.HASURA_URL}/v1/graphql`, queryForData, [table])
 
-    // console.log(JSON.stringify(resData))
+    // console.log("RESDATA: " + JSON.stringify(resData))
     res.send({
       schema: beautifyGQLSchema(gqlSchema),
       data: resData

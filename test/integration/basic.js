@@ -38,12 +38,12 @@ const app = require('../../app')
 //       })
 //   })
 
-  /*
-  FIXME: the test fail right now, because hasura returns 200 status even
-    when not found the requested resource (wraps the 404 response into 200
-    response, see error-log.json (the relevant logs from hasura container)
-    file for more details
-   */
+/*
+FIXME: the test fail right now, because hasura returns 200 status even
+  when not found the requested resource (wraps the 404 response into 200
+  response, see error-log.json (the relevant logs from hasura container)
+  file for more details
+ */
   // it('should return 404 for non existing columns', function (done) {
   //   const query = `
   //     query MyQuery {
