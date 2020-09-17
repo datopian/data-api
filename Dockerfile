@@ -20,4 +20,6 @@ RUN yarn
 
 RUN ["chmod", "+x", "./wait-for-it.sh"]
 
+RUN ["yarn", "prettier", "--check", "."]
+
 CMD [ "yarn", "start" ]
