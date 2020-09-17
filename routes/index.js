@@ -64,7 +64,7 @@ function getFieldTypesFromGQLSchema(gqlSchema) {
   // Lookup table:
   let fieldTypeMap = Object.fromEntries(gqlSchema.fields.map(e => [e.name, gqlType2jsType(e.type.name)]));
 
-  console.log("Field Type Map: " + JSON.stringify(fieldTypeMap))
+//  console.log("Field Type Map: " + JSON.stringify(fieldTypeMap))
   return fieldTypeMap
 }
 
@@ -180,12 +180,12 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
       queryForData = q2gql(req.query.q, schema, table, tableFields, process.env.DEFAULT_ROW_LIMIT)
     }
 
-    console.log("Constructed query = " + queryForData)
+//    console.log("Constructed query = " + queryForData)
 
     const resData = await request(`${process.env.HASURA_URL}/v1/graphql`, queryForData)
     // const resData = await request(`${process.env.HASURA_URL}/v1/graphql`, queryForData, {table: table})
 
-    console.log(JSON.stringify(resData))
+//    console.log(JSON.stringify(resData))
 
     res.send({
       schema: beautifyGQLSchema(gqlSchema),
