@@ -17,7 +17,7 @@ services:
       context: environment/hasura/
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "8080"
     depends_on:
       - db
     restart: always
@@ -38,7 +38,7 @@ services:
   db:
     image: postgres
     ports:
-      - "5555:5432"
+      - "5432"
     environment:
       POSTGRES_DB: datastore_default
       POSTGRES_USER: ckan_default
