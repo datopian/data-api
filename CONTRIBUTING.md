@@ -8,7 +8,7 @@
 4. `yarn start` to launch server / `yarn test` to run tests
 5. install and use prettier to format code - https://prettier.io/docs/en/install.html (otherwise new builds will likely fail)
 
-## CI 
+## CI
 
 Tests and redeployment run automatically on every push to master, see `.github/workflows` for more info.
 
