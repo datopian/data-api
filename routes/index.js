@@ -42,19 +42,30 @@ async function getGraphQLTableSchema(resource_id) {
 
 /* Creates a nice json from the GraphQL schema to return with the response to the end user */
 function getFieldTypesFromGQLSchema(gqlSchema) {
-   console.log("GQL Schema Types : "+ JSON.stringify(gqlSchema))
+  console.log("GQL Schema Types : " + JSON.stringify(gqlSchema))
   //  console.log("GQL Schema FIELDS: "+ JSON.stringify(gqlSchema.fields))
   function gqlType2jsType(typeName) {
-    jsType = typeName
-    if (typeName.toLowerCase().includes('float')){
-      jsType = 'Float'
+    let jsType = typeName
+    const dtype = typeName.toLowerCase()
+    // include boolean
+    if (dtype.includes('float') || dtype.includes('int')) {
+      jsType = 'numeric'
     }
+    else if (dtype.includes('bool')) {
+      jsType = 'boolean'
+    }
+
     // else if ... 
     // TODO other types that might be a problem ... 
     return jsType
 
   }
-  return gqlSchema.fields.map(e => e.name, gqlType2jsType(e.type.name))
+
+  // Lookup table:
+  let fieldTypeMap = Object.fromEntries(gqlSchema.fields.map(e => [e.name, gqlType2jsType(e.type.name)]));
+
+  console.log("Field Type Map: " + JSON.stringify(fieldTypeMap))
+  return fieldTypeMap
 }
 
 /* Creates a nice json from the GraphQL schema to return with the response to the end user */
@@ -92,76 +103,42 @@ function createQuery(table, fieldNames, limit) {
 }
 
 /* convert input q parameter into grqphql syntax*/
-function q2gql(q, table, fieldNames, limit, schema) {
+function q2gql(q, schema, table, fieldNames, limit) {
 
-  console.log("Input Q = " + q)
+  // console.log("Input Q = " + q, schema, table, fieldNames, limit)
 
-  // console.log("Schema2: " + JSON.stringify(getFieldTypesFromGQLSchema(schema)))
-  console.log("Schema2: " + getFieldTypesFromGQLSchema(schema))
+  // console.log("Schema2 input: " + JSON.stringify(schema))
+  const schemaTypes = getFieldTypesFromGQLSchema(schema)
+  // console.log("Schema2 fields: " + schemaTypes)
 
-  // function colEq(column, value, valueType) {
+  function colEq(column, value, valueType) {
+    switch (valueType) {
+      case "numeric":
+        eqStatement = `${value}`;
+        break;
+      default:
+        eqStatement = `"${value}"`;
+    }
 
-  //   switch (valueType) {
-  //     case "Int":
-  //       eqStatement = `${value}`;
-  //       break;
-  //     case "Float":
-  //       eqStatement = `${value}`;
-  //       break;
-  //     case "Boolean":
-  //       eqStatement = `${value}`;
-  //       break;
-  //     default:
-  //       eqStatement = `"${value}"`;
-  //   }
-  //   // const eqStatement = isNaN(value)  ?  `"${value}"`  : `${value}`
-  //   // const eqStatement = typeof(value) == "number"  ?  `"${value}"`  : `${value}`
-
-  //   return `${column}: { _eq: ${eqStatement}}`
-
-  // }
-
-  function colEq(column, value) {
-    return `${column}: { _eq: ${value}}`
+    return `${column}: { _eq: ${eqStatement}}`
   }
   // parse q 
   const qp = JSON.parse(q)
-  console.log("Parsed Q = " + JSON.stringify(qp))
+  // console.log("Parsed Q = " + JSON.stringify(qp))
   // const whereClauses =  Object.entries(qp).forEach( ([k,v]) => colEq( k, v ))
   // TODO here  use the schema parse the input schema to get the valueType
-  const whereClauses = Object.keys(qp).map((k) => colEq(k, qp[k]))
+  const whereClauses = Object.keys(qp).map((k) => colEq(k, qp[k], schemaTypes[k]))
   const whereStatement = `where: {${whereClauses.join(',')}}`
   const columns = fieldNames.join('\n')
 
-  // let query = gql`
-  //   {
-  //     ${table}(${whereStatement}, limit: ${limit || process.env.DEFAULT_ROW_LIMIT || 10} ){
-  //       ${columns}
-  //     }
-  //   }
-  //   `
-
   let query = gql`
-  {
-    $table(where { text_column: { _eq: "11111111111111111111111111111111"},
-                   float_column: { _eq: 0.1111111111111111},
-                   int_column: { _eq: 111111}}
-  }, limit: 100 } ){
-      int_column
-      text_column
-      float_column
-      time_column
+    {
+      ${table}(${whereStatement}, limit: ${limit || process.env.DEFAULT_ROW_LIMIT || 10} ){
+        ${columns}
+      }
     }
-  }
-  `
-
-
-  const variables = {
-    title: 'Inception',
-  }
-
-  console.log("Generated Query = " + query)
-
+    `
+  // console.log("Generated Query = " + query)
   return query
 }
 
@@ -169,18 +146,6 @@ function q2gql(q, table, fieldNames, limit, schema) {
 router.get('/', function (req, res, next) {
   res.send('Hello world!')
 })
-
-/*
-
-/datastore_search/?resource_id -> redirect 
-/datastore_search/resource_id
-/datastore_search/help -> by default if the query is not valid
-/datastore_search/list_resources
-/datastore_search_sql
-/datastore_search_graphql
-
-
-*/
 
 router.get(`/${APP_VERSION}/datastore_search/help`, function (req, res, next) {
   res.send('TODO this is the API help')
@@ -190,11 +155,6 @@ router.get(`/${APP_VERSION}/datastore_search/help`, function (req, res, next) {
 router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
   /*TODO*/
   /* Auth handling  ... maybe JWT? */
-  /* query DB */
-  /* */
-  /* form result JSON */
-
-  /* parse req */
 
   try {
 
@@ -205,16 +165,19 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
     const table = req.query.resource_id
 
     let gqlSchema = await getGraphQLTableSchema(table)
-    console.log("GQL Schema : "+ JSON.stringify(gqlSchema))
+    // console.log("GQL Schema : " + JSON.stringify(gqlSchema))
 
     let tableFields = getFieldsFromGQLSchema(gqlSchema)
     // console.log("Table Fields: "+tableFields)
 
-    console.log("BeautyFields: "+beautifyGQLSchema(gqlSchema))
+    // console.log("BeautyFields: " + JSON.stringify(beautifyGQLSchema(gqlSchema)))
 
     let queryForData = createQuery(table, tableFields)
+    // console.log("Constructed query if NOT q = " + queryForData)
+
     if ('q' in req.query) {
-      queryForData = q2gql(req.query.q, table, tableFields, schema)
+      // console.log("entering q ... ")
+      queryForData = q2gql(req.query.q, schema, table, tableFields, process.env.DEFAULT_ROW_LIMIT)
     }
 
     console.log("Constructed query = " + queryForData)
@@ -222,10 +185,11 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
     const resData = await request(`${process.env.HASURA_URL}/v1/graphql`, queryForData)
     // const resData = await request(`${process.env.HASURA_URL}/v1/graphql`, queryForData, {table: table})
 
-    // console.log(JSON.stringify(resData))
+    console.log(JSON.stringify(resData))
+
     res.send({
       schema: beautifyGQLSchema(gqlSchema),
-      data: resData
+      data: resData[table]
     })
   } catch (e) {
     console.error(e)
