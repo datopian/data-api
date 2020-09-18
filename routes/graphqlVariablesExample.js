@@ -49,9 +49,9 @@ async function main() {
 
   const variables = {
     text_column: '11111111111111111111111111111111',
-    intColumnValue: 111111,
-    // floatColumnValue: 0.1111111111111111,
-    // timeColumnValue: '2020-09-09 00:00:00',
+    int_column: 111111,
+    floatColumnValue: 0.1111111111111111,
+    timeColumnValue: '2020-09-09 00:00:00',
   }
 
   const data = await request(endpoint, query, variables)
