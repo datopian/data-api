@@ -43,7 +43,6 @@ async function getGraphQLTableSchema(resource_id) {
   return schema
 }
 
-/* Creates a nice json from the GraphQL schema to return with the response to the end user */
 function getFieldTypesFromGQLSchema(gqlSchema) {
   //  console.log("GQL Schema Types : " + JSON.stringify(gqlSchema))
   //  console.log("GQL Schema FIELDS: "+ JSON.stringify(gqlSchema.fields))
@@ -135,9 +134,8 @@ function q2gql(q, schema, table, fieldNames, limit) {
 
   let query = gql`
     {
-      ${table}(${whereStatement}, limit: ${
-    limit || process.env.DEFAULT_ROW_LIMIT || 10
-  } ){
+      ${table}(${whereStatement}, limit: ${limit || process.env.DEFAULT_ROW_LIMIT || 10
+    } ){
         ${columns}
       }
     }
@@ -158,56 +156,85 @@ router.get(`/${APP_VERSION}/datastore_search/help`, function (req, res, next) {
 /* GET . */
 router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
   try {
+
+    if (!('resource_id' in req.query)) {
+      res.redirect(`/${APP_VERSION}/datastore_search/help`)
+    }
+    const table = req.query.resource_id
     // query for schema  -> TODO this should be already in Frictionless format
     const schema = await queryForSchema()
 
     // query for data -> basically the call to queryGraphQL
     const data = await queryForData(schema, params)
 
-    //
-
     /*TODO*/
     /* Auth handling  ... maybe JWT? */
     // Mandatory GET parameters check
-    if (!('resource_id' in req.query)) {
-      res.redirect(`/${APP_VERSION}/datastore_search/help`)
-    }
-    const table = req.query.resource_id
 
-    let gqlSchema = await getGraphQLTableSchema(table)
-    // console.log("GQL Schema : " + JSON.stringify(gqlSchema))
-    let tableFields = getFieldsFromGQLSchema(gqlSchema)
-    // console.log("Table Fields: "+tableFields)
-    // console.log("BeautyFields: " + JSON.stringify(beautifyGQLSchema(gqlSchema)))
-    //Query generation
-    let queryForData = createQuery(table, tableFields)
-    // console.log("Constructed query if NOT q = " + queryForData)
-    if ('q' in req.query) {
-      // console.log("entering q ... ")
-      queryForData = q2gql(
-        req.query.q,
-        schema,
-        table,
-        tableFields,
-        process.env.DEFAULT_ROW_LIMIT
-      )
-    }
-    //    console.log("Constructed query = " + queryForData)
-    // call HASURA service
-    const resData = await request(
-      `${process.env.HASURA_URL}/v1/graphql`,
-      queryForData
-    )
-    // const resData = await request(`${process.env.HASURA_URL}/v1/graphql`, queryForData, {table: table})
-    //    console.log(JSON.stringify(resData))
     // response
     res.send({
       schema: beautifyGQLSchema(gqlSchema),
-      data: resData[table],
+      data: data[table],
     })
   } catch (e) {
     console.error(e)
   }
 })
+
+
+// /* GET . */
+// router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
+//   try {
+//     // query for schema  -> TODO this should be already in Frictionless format
+//     const schema = await queryForSchema()
+
+//     // query for data -> basically the call to queryGraphQL
+//     const data = await queryForData(schema, params)
+
+//     //
+
+//     /*TODO*/
+//     /* Auth handling  ... maybe JWT? */
+//     // Mandatory GET parameters check
+//     if (!('resource_id' in req.query)) {
+//       res.redirect(`/${APP_VERSION}/datastore_search/help`)
+//     }
+//     const table = req.query.resource_id
+
+//     let gqlSchema = await getGraphQLTableSchema(table)
+//     // console.log("GQL Schema : " + JSON.stringify(gqlSchema))
+//     let tableFields = getFieldsFromGQLSchema(gqlSchema)
+//     // console.log("Table Fields: "+tableFields)
+//     // console.log("BeautyFields: " + JSON.stringify(beautifyGQLSchema(gqlSchema)))
+//     //Query generation
+//     let queryForData = createQuery(table, tableFields)
+//     // console.log("Constructed query if NOT q = " + queryForData)
+//     if ('q' in req.query) {
+//       // console.log("entering q ... ")
+//       queryForData = q2gql(
+//         req.query.q,
+//         schema,
+//         table,
+//         tableFields,
+//         process.env.DEFAULT_ROW_LIMIT
+//       )
+//     }
+//     //    console.log("Constructed query = " + queryForData)
+//     // call HASURA service
+//     const resData = await request(
+//       `${process.env.HASURA_URL}/v1/graphql`,
+//       queryForData
+//     )
+//     // const resData = await request(`${process.env.HASURA_URL}/v1/graphql`, queryForData, {table: table})
+//     //    console.log(JSON.stringify(resData))
+//     // response
+//     res.send({
+//       schema: beautifyGQLSchema(gqlSchema),
+//       data: resData[table],
+//     })
+//   } catch (e) {
+//     console.error(e)
+//   }
+// })
 
 module.exports = router

@@ -1,0 +1,1 @@
+mocha --recursive -g 'should execute simple query without variables'
