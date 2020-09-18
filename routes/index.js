@@ -42,7 +42,7 @@ async function getGraphQLTableSchema(resource_id) {
 
 /* Creates a nice json from the GraphQL schema to return with the response to the end user */
 function getFieldTypesFromGQLSchema(gqlSchema) {
-  console.log("GQL Schema Types : " + JSON.stringify(gqlSchema))
+//  console.log("GQL Schema Types : " + JSON.stringify(gqlSchema))
   //  console.log("GQL Schema FIELDS: "+ JSON.stringify(gqlSchema.fields))
   function gqlType2jsType(typeName) {
     let jsType = typeName
@@ -111,6 +111,7 @@ function q2gql(q, schema, table, fieldNames, limit) {
   const schemaTypes = getFieldTypesFromGQLSchema(schema)
   // console.log("Schema2 fields: " + schemaTypes)
 
+  /*Selects correct double-quote syntax for query filter values depending on the valueType*/
   function colEq(column, value, valueType) {
     switch (valueType) {
       case "numeric":
@@ -125,8 +126,6 @@ function q2gql(q, schema, table, fieldNames, limit) {
   // parse q 
   const qp = JSON.parse(q)
   // console.log("Parsed Q = " + JSON.stringify(qp))
-  // const whereClauses =  Object.entries(qp).forEach( ([k,v]) => colEq( k, v ))
-  // TODO here  use the schema parse the input schema to get the valueType
   const whereClauses = Object.keys(qp).map((k) => colEq(k, qp[k], schemaTypes[k]))
   const whereStatement = `where: {${whereClauses.join(',')}}`
   const columns = fieldNames.join('\n')
@@ -148,7 +147,7 @@ router.get('/', function (req, res, next) {
 })
 
 router.get(`/${APP_VERSION}/datastore_search/help`, function (req, res, next) {
-  res.send('TODO this is the API help')
+  res.send('TODO this is the API help')  //TODO help
 })
 
 /* GET . */
@@ -157,36 +156,30 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
   /* Auth handling  ... maybe JWT? */
 
   try {
-
+    // Mandatory GET parameters check
     if (!('resource_id' in req.query)) {
       res.redirect(`/${APP_VERSION}/datastore_search/help`)
     }
-
     const table = req.query.resource_id
 
     let gqlSchema = await getGraphQLTableSchema(table)
     // console.log("GQL Schema : " + JSON.stringify(gqlSchema))
-
     let tableFields = getFieldsFromGQLSchema(gqlSchema)
     // console.log("Table Fields: "+tableFields)
-
     // console.log("BeautyFields: " + JSON.stringify(beautifyGQLSchema(gqlSchema)))
-
+    //Query generation
     let queryForData = createQuery(table, tableFields)
     // console.log("Constructed query if NOT q = " + queryForData)
-
     if ('q' in req.query) {
       // console.log("entering q ... ")
       queryForData = q2gql(req.query.q, schema, table, tableFields, process.env.DEFAULT_ROW_LIMIT)
     }
-
 //    console.log("Constructed query = " + queryForData)
-
+    // call HASURA service
     const resData = await request(`${process.env.HASURA_URL}/v1/graphql`, queryForData)
     // const resData = await request(`${process.env.HASURA_URL}/v1/graphql`, queryForData, {table: table})
-
 //    console.log(JSON.stringify(resData))
-
+    // response
     res.send({
       schema: beautifyGQLSchema(gqlSchema),
       data: resData[table]

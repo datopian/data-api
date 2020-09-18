@@ -49,7 +49,8 @@ describe('datastore_search endpoint', function () {
      })
 
 
-     it('respond with default number of rows when requesting by resource_id on a table with more than the default rows', function (done) {
+     it('respond with default number of rows when requesting by resource_id on a table with more than the default rows',
+      function (done) {
        request(app)
          .get(`/${APP_VERSION}/datastore_search?resource_id=${TEST_TABLE_NAME}`)
          .expect(200)
@@ -96,11 +97,11 @@ describe('datastore_search endpoint', function () {
 
   })
 
-  // it('return 404 when no such resource_id exist', function (done) {
-  //   request(app)
-  //     .get(`/${APP_VERSION}/datastore_search?resource_id=nonexsting_id`)
-  //     .expect(404, done)
-  // })
+   it('return 404 when no such resource_id exist', function (done) {
+     request(app)
+       .get(`/${APP_VERSION}/datastore_search?resource_id=nonexsting_id`)
+       .expect(404, done)
+   })
 
   // it('should return a valid JSON by default', function (done) {
   //   request(app)
