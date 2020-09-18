@@ -27,31 +27,31 @@ const mockFrictionlessTableSchema = {
 }
 
 describe('graphqlQueryBuilder', function () {
-  describe('queryForData', function () {
-    it('should return 404 for non existing resouce id', async function () {
-      params = {
-        resource_id: 'non_existing_table',
-        fields: ['int_column', 'text_column', 'float_column', 'time_column'],
-        limit: 10
-      }
-      assert.throw(function() { (await queryForData(mockFrictionlessTableSchema, params))}, Error, /Error thrown/)
-    })
+  // describe('queryForData', function () {
+  //   it('should return 404 for non existing resouce id', async function () {
+  //     params = {
+  //       resource_id: 'non_existing_table',
+  //       fields: ['int_column', 'text_column', 'float_column', 'time_column'],
+  //       limit: 10
+  //     }
+  //     assert.throw(function() { (await queryForData(mockFrictionlessTableSchema, params))}, Error, /Error thrown/)
+  //   })
 
-    it('should execute simple query without filters', async function () {
+  //   it('should execute simple query without filters', async function () {
 
-      const limit = 10
-      params = {
-        resource_id: 'test_table',
-        fields: ['int_column', 'text_column', 'float_column', 'time_column'],
-        limit: limit
-      }
+  //     const limit = 10
+  //     params = {
+  //       resource_id: 'test_table',
+  //       fields: ['int_column', 'text_column', 'float_column', 'time_column'],
+  //       limit: limit
+  //     }
 
-      const result = await queryForData(mockFrictionlessTableSchema, params)
-      console.log(JSON.stringify(result))
-      expect(result).to.be.a('array')
-      expect(result.length).to.be.equal(limit)
-    })
-  })
+  //     const result = await queryForData(mockFrictionlessTableSchema, params)
+  //     console.log(JSON.stringify(result))
+  //     expect(result).to.be.a('array')
+  //     expect(result.length).to.be.equal(limit)
+  //   })
+  // })
 
   describe('function buildQueryForData', function () {
     it('builds a result query with all possible q params', function () {
@@ -72,26 +72,26 @@ describe('graphqlQueryBuilder', function () {
 
 
   describe('function buildParametrableQuery', function () {
-    const mockFrictionlessTableSchema = {
-      fields: [
-        {
-          name: 'float_column',
-          type: 'float8',
-        },
-        {
-          name: 'int_column',
-          type: 'Int',
-        },
-        {
-          name: 'text_column',
-          type: 'String',
-        },
-        {
-          name: 'time_column',
-          type: 'timestamp',
-        },
-      ],
-    }
+    // const mockFrictionlessTableSchema = {
+    //   fields: [
+    //     {
+    //       name: 'float_column',
+    //       type: 'float8',
+    //     },
+    //     {
+    //       name: 'int_column',
+    //       type: 'Int',
+    //     },
+    //     {
+    //       name: 'text_column',
+    //       type: 'String',
+    //     },
+    //     {
+    //       name: 'time_column',
+    //       type: 'timestamp',
+    //     },
+    //   ],
+    // }
   
     it('builds a result query with all possible query params', function () {
   
