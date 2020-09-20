@@ -69,7 +69,7 @@ describe('datastore_search endpoint', function () {
         )
         .expect(200)
         .end((err, res) => {
-          console.log('Responponse Body ' + JSON.stringify(res.body, null, 2))
+          // console.log('Responponse Body ' + JSON.stringify(res.body, null, 2))
           assert.deepStrictEqual(res.body.data.length, 1)
           // assert.deepStrictEqual(res.body.data.test_data.length, 1) ??
           done()

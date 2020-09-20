@@ -5,7 +5,6 @@ async function queryForData(schema, params) {
 
   // parameters parsing -> order_by, distinct
   //distinct supports either a boolean value (default false) or a list of fields to compare
-  // console.log()
   let queryParams = JSON.parse(JSON.stringify(params))
   if (params.distinct_on){
     if (typeof(params.distinct_on) === "boolean"){
@@ -24,18 +23,14 @@ async function queryForData(schema, params) {
     offset: params.offset,
   }
 
-  // fields conditition parsing e.g. cond_int_column: 3
-  if (params.filters) {
-    for (const [key, value] of Object.entries(params.filters)) {
-      variables[`cond_${key}`] = value
+  if (params.q) {
+    const qp = JSON.parse(params.q)
+    for (const k of Object.keys(qp)) {
+      variables[`cond_${k}`] = qp[k]
     }
   }
-  // console.log("Call schema buildParametrableQuery " + JSON.stringify(schema))
-  // console.log("Call queryParams buildParametrableQuery " + JSON.stringify(queryParams))
-  // console.log("Variables = "+ JSON.stringify(variables))
+  console.log("Variables = "+ JSON.stringify(variables))
   const query = buildParametrableQuery(schema, queryParams)
-  // console.log("QUERY: "+ JSON.stringify(query))
-  //are variables different to the params? Maybe
   return request(process.env.HASURA_URL + '/v1/graphql', query, variables).then(resp => resp[params.resource_id])
 }
 
@@ -86,18 +81,6 @@ function buildParametrableQuery(schema, params) {
       }
     }`
 
-//  return gql`query ${params.resource_id}_query (${variablesDeclaration}) { 
-//   ${params.resource_id}(
-//     limit: $limit,
-//     where: {
-//       ${whereFields.join(' ')}
-//     }, 
-
-//     ${extraFields}
-//     ) {
-//       ${selectFields.join(' ')}
-//     }
-//   }`
 }
 
 module.exports = {
