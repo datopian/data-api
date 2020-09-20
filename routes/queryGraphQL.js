@@ -20,8 +20,8 @@ async function queryForData(schema, params) {
 
   // list of all variables that we can filter on directly
   let variables = {
-    // limit: params.limit,
-    // offset: params.offset,
+    limit: params.limit,
+    offset: params.offset,
   }
 
   // fields conditition parsing e.g. cond_int_column: 3
@@ -34,51 +34,9 @@ async function queryForData(schema, params) {
   // console.log("Call queryParams buildParametrableQuery " + JSON.stringify(queryParams))
   console.log("Variables = "+ JSON.stringify(variables))
   const query = buildParametrableQuery(schema, queryParams)
-  console.log("QUERY: "+ JSON.stringify(query))
+  // console.log("QUERY: "+ JSON.stringify(query))
   //are variables different to the params? Maybe
   return request(process.env.HASURA_URL + '/v1/graphql', query, variables).then(resp => resp[params.resource_id])
-}
-
-/**
- *
- * @param {*} schema table schema in frictionless format
- * @param {*} params query parameters, e.g. resource_id, fields, limit
- * @returns String GraphQL query with optional params for fields being equal
- */
-function buildQueryForData(schema, params) {
-  // $text_column: String
-  let variablesDeclaration = schema.fields
-    .map((f) => `$${f.name}: ${f.type.name}`)
-    .join(' ')
-    // declare the other variables distinct, offset, sort_by .... 
-
-  // text_column: { _eq: $text_column }
-  const whereFields = schema.fields.map((f) => `${f.name}: { _eq: $${f.name} }`)
-
-  const whereClause = `where: {
-    ${whereFields.join(' ')}
-  }`
-  /*
-  query MyQuery {
-    test_table(
-      distinct_on: float_column, 
-      limit: 10, 
-      offset: 10, 
-      order_by: {float_column: asc, int_column: asc, text_column: asc, time_column: asc}, 
-      where: {float_column: {_eq: "2.2"}, 
-      int_column: {_eq: 6}, 
-      text_column: {_eq: "asd"}})
-  }
-  */
-
-  return gql`query ${params.resource_id}_query (${variablesDeclaration}) { 
-    ${params.resource_id}(
-      limit: ${params.limit},
-      ${whereClause}
-    ) {
-      ${params.fields.join(' ')}
-    }
-  }`
 }
 
 /**
@@ -95,7 +53,7 @@ function buildParametrableQuery(schema, params) {
   
   variablesDeclaration = variablesDeclaration.concat([ 
     // "$limit: Int!",
-    // "$offset: Int",
+    "$offset: Int",
     // "$distinct_on: String",
     // "$sort_by"
   ]).join(' ')
@@ -121,6 +79,7 @@ function buildParametrableQuery(schema, params) {
       where: {
         ${whereFields.join(' ')}
       }, 
+      offset: $offset,
       ${extraFields}
       ) {
         ${selectFields.join(' ')}
@@ -129,12 +88,11 @@ function buildParametrableQuery(schema, params) {
 
 //  return gql`query ${params.resource_id}_query (${variablesDeclaration}) { 
 //   ${params.resource_id}(
-//     # limit: $limit,
-//     limit: ${limit},
+//     limit: $limit,
 //     where: {
 //       ${whereFields.join(' ')}
 //     }, 
-//     # offset: $offset,  # FUTURE
+
 //     ${extraFields}
 //     ) {
 //       ${selectFields.join(' ')}
@@ -144,6 +102,5 @@ function buildParametrableQuery(schema, params) {
 
 module.exports = {
   queryForData,
-  buildQueryForData,
   buildParametrableQuery
 }

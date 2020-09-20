@@ -2,26 +2,8 @@ const request = require('supertest')
 const app = require('../../app')
 var assert = require('assert')
 
-const APP_VERSION = 'v1.1'
+const APP_VERSION = 'v1'
 const TEST_TABLE_NAME = 'test_table'
-const TEST_TABLE_FIELDS = [
-  {
-    name: 'time_column',
-    type: 'timestamp',
-  },
-  {
-    name: 'text_column',
-    type: 'String',
-  },
-  {
-    name: 'float_column',
-    type: 'float8',
-  },
-  {
-    name: 'int_column',
-    type: 'Int',
-  },
-]
 
 describe('datastore_search endpoint', function () {
   it('returns 200 in a basic case', function (done) {
@@ -55,12 +37,12 @@ describe('datastore_search endpoint', function () {
           return done(err)
         }
         const jsonResp = JSON.parse(res.text)
-        //           console.log("JSON response: " + JSON.stringify(jsonResp))
-        //           console.log("JSON response: " + JSON.stringify(jsonResp.data)
-        //        jsonResp.data[`${TEST_TABLE_NAME}`]
-        //        console.log("JSON response: " + JSON.stringify(jsonResp.data[`${TEST_TABLE_NAME}`]))
-        //        console.log("JSON response: " + JSON.stringify(jsonResp.data[`${TEST_TABLE_NAME}`]))
-        //        console.log("JSON data response length: " + jsonResp.data[`${TEST_TABLE_NAME}`].length)
+        console.log("JSON response: " + JSON.stringify(jsonResp))
+        // console.log("JSON response: " + JSON.stringify(jsonResp.data)
+        jsonResp.data[`${TEST_TABLE_NAME}`]
+        console.log("JSON response: " + JSON.stringify(jsonResp.data[`${TEST_TABLE_NAME}`]))
+        console.log("JSON response: " + JSON.stringify(jsonResp.data[`${TEST_TABLE_NAME}`]))
+        console.log("JSON data response length: " + jsonResp.data[`${TEST_TABLE_NAME}`].length)
 
         if (!(jsonResp.data.length == process.env.DEFAULT_ROW_LIMIT)) {
           return done('response length is not correct')

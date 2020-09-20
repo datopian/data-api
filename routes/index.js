@@ -2,17 +2,17 @@ var express = require('express')
 var router = express.Router()
 const { request, gql } = require('graphql-request')
 
-const { Pool, Client } = require('pg')
+// const { Pool, Client } = require('pg')
 const { queryForData } = require('./queryGraphQL')
-const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
-})
+// const pool = new Pool({
+//   connectionString: process.env.POSTGRES_URL,
+// })
 
-const APP_VERSION = 'v1.1'
+const APP_VERSION = 'v1'
 
 /* Gets the schema from a GraphQL*/
 async function getGraphQLTableSchema(resource_id) {
-  console.log("ResourceID: " + resource_id)
+  // console.log("ResourceID: " + resource_id)
 
   const queryForSchema = gql`
   {
@@ -43,40 +43,6 @@ async function getGraphQLTableSchema(resource_id) {
   return schema
 }
 
-function getFieldTypesFromGQLSchema(gqlSchema) {
-  //  console.log("GQL Schema Types : " + JSON.stringify(gqlSchema))
-  //  console.log("GQL Schema FIELDS: "+ JSON.stringify(gqlSchema.fields))
-  function gqlType2jsType(typeName) {
-    let jsType = typeName
-    const dtype = typeName.toLowerCase()
-    // include boolean
-    if (dtype.includes('float') || dtype.includes('int')) {
-      jsType = 'numeric'
-    } else if (dtype.includes('bool')) {
-      jsType = 'boolean'
-    }
-
-    // else if ...
-    // TODO other types that might be a problem ...
-    return jsType
-  }
-
-  // Lookup table:
-  let fieldTypeMap = Object.fromEntries(
-    gqlSchema.fields.map((e) => [e.name, gqlType2jsType(e.type.name)])
-  )
-
-  //  console.log("Field Type Map: " + JSON.stringify(fieldTypeMap))
-  return fieldTypeMap
-}
-
-/* Creates a nice json from the GraphQL schema to return with the response to the end user */
-function getFieldsFromGQLSchema(gqlSchema) {
-  //  console.log("GQL Schema : "+ JSON.stringify(gqlSchema))
-  //  console.log("GQL Schema FIELDS: "+ JSON.stringify(gqlSchema.fields))
-  return gqlSchema.fields.map((e) => e.name)
-}
-
 /* Creates a nice json from the GraphQL schema to return with the response to the end user */
 function beautifyGQLSchema(gqlSchema) {
   return {
@@ -88,60 +54,6 @@ function beautifyGQLSchema(gqlSchema) {
       }
     }),
   }
-}
-
-function createQuery(table, fieldNames, limit) {
-  const columns = fieldNames.join('\n\t\t\t')
-
-  let query = gql`
-    {
-      ${table}(limit: ${limit || process.env.DEFAULT_ROW_LIMIT || 10}) {
-        ${columns}
-      }
-    }
-    `
-  return query
-}
-
-/* convert input q parameter into grqphql syntax*/
-function q2gql(q, schema, table, fieldNames, limit) {
-  // console.log("Input Q = " + q, schema, table, fieldNames, limit)
-
-  // console.log("Schema2 input: " + JSON.stringify(schema))
-  const schemaTypes = getFieldTypesFromGQLSchema(schema)
-  // console.log("Schema2 fields: " + schemaTypes)
-
-  /*Selects correct double-quote syntax for query filter values depending on the valueType*/
-  function colEq(column, value, valueType) {
-    switch (valueType) {
-      case 'numeric':
-        eqStatement = `${value}`
-        break
-      default:
-        eqStatement = `"${value}"`
-    }
-
-    return `${column}: { _eq: ${eqStatement}}`
-  }
-  // parse q
-  const qp = JSON.parse(q)
-  // console.log("Parsed Q = " + JSON.stringify(qp))
-  const whereClauses = Object.keys(qp).map((k) =>
-    colEq(k, qp[k], schemaTypes[k])
-  )
-  const whereStatement = `where: {${whereClauses.join(',')}}`
-  const columns = fieldNames.join('\n')
-
-  let query = gql`
-    {
-      ${table}(${whereStatement}, limit: ${limit || process.env.DEFAULT_ROW_LIMIT || 10
-    } ){
-        ${columns}
-      }
-    }
-    `
-  // console.log("Generated Query = " + query)
-  return query
 }
 
 /* GET home page. */
@@ -165,7 +77,7 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
     // console.log("Params: " + JSON.stringify(req.params))
     // console.log("Headers: " + JSON.stringify(req.headers))
     const table = req.query.resource_id
-    // query for schema  -> TODO this should be already in Frictionless format
+    // query for schema  -> this should be already in Frictionless format
     // const schema = await queryForSchema()
     const schema = await getGraphQLTableSchema(table)
 
