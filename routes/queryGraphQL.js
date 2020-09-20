@@ -32,7 +32,7 @@ async function queryForData(schema, params) {
   }
   // console.log("Call schema buildParametrableQuery " + JSON.stringify(schema))
   // console.log("Call queryParams buildParametrableQuery " + JSON.stringify(queryParams))
-  console.log("Variables = "+ JSON.stringify(variables))
+  // console.log("Variables = "+ JSON.stringify(variables))
   const query = buildParametrableQuery(schema, queryParams)
   // console.log("QUERY: "+ JSON.stringify(query))
   //are variables different to the params? Maybe

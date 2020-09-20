@@ -36,13 +36,14 @@ describe('datastore_search endpoint', function () {
         if (err) {
           return done(err)
         }
+        // console.log("Response: " + JSON.stringify(res))
         const jsonResp = JSON.parse(res.text)
-        console.log("JSON response: " + JSON.stringify(jsonResp))
+        // console.log("JSON response: " + JSON.stringify(jsonResp))
         // console.log("JSON response: " + JSON.stringify(jsonResp.data)
-        jsonResp.data[`${TEST_TABLE_NAME}`]
-        console.log("JSON response: " + JSON.stringify(jsonResp.data[`${TEST_TABLE_NAME}`]))
-        console.log("JSON response: " + JSON.stringify(jsonResp.data[`${TEST_TABLE_NAME}`]))
-        console.log("JSON data response length: " + jsonResp.data[`${TEST_TABLE_NAME}`].length)
+        // jsonResp.data[`${TEST_TABLE_NAME}`]
+        // console.log("JSON response: " + JSON.stringify(jsonResp.data[`${TEST_TABLE_NAME}`]))
+        // console.log("JSON response: " + JSON.stringify(jsonResp.data[`${TEST_TABLE_NAME}`]))
+        // console.log("JSON data response length: " + jsonResp.data[`${TEST_TABLE_NAME}`].length)
 
         if (!(jsonResp.data.length == process.env.DEFAULT_ROW_LIMIT)) {
           return done('response length is not correct')
@@ -68,7 +69,7 @@ describe('datastore_search endpoint', function () {
         )
         .expect(200)
         .end((err, res) => {
-          // console.log('Responponse Body ' + JSON.stringify(res.body, null, 2))
+          console.log('Responponse Body ' + JSON.stringify(res.body, null, 2))
           assert.deepStrictEqual(res.body.data.length, 1)
           // assert.deepStrictEqual(res.body.data.test_data.length, 1) ??
           done()
