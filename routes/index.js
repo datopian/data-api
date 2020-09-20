@@ -12,7 +12,7 @@ const APP_VERSION = 'v1.1'
 
 /* Gets the schema from a GraphQL*/
 async function getGraphQLTableSchema(resource_id) {
-  console.log(resource_id)
+  console.log("ResourceID: " + resource_id)
 
   const queryForSchema = gql`
   {
@@ -146,7 +146,7 @@ function q2gql(q, schema, table, fieldNames, limit) {
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  res.send('Hello world!')
+  res.send('Home Page!!')
 })
 
 router.get(`/${APP_VERSION}/datastore_search/help`, function (req, res, next) {
@@ -160,12 +160,17 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
     if (!('resource_id' in req.query)) {
       res.redirect(`/${APP_VERSION}/datastore_search/help`)
     }
+    // console.log("Request: " + JSON.stringify(req))
+    // console.log("Query: " + JSON.stringify(req.query))
+    // console.log("Params: " + JSON.stringify(req.params))
+    // console.log("Headers: " + JSON.stringify(req.headers))
     const table = req.query.resource_id
     // query for schema  -> TODO this should be already in Frictionless format
-    const schema = await queryForSchema()
+    // const schema = await queryForSchema()
+    const schema = await getGraphQLTableSchema(table)
 
     // query for data -> basically the call to queryGraphQL
-    const data = await queryForData(schema, params)
+    const data = await queryForData(schema, req.query)
 
     /*TODO*/
     /* Auth handling  ... maybe JWT? */
@@ -173,7 +178,7 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
 
     // response
     res.send({
-      schema: beautifyGQLSchema(gqlSchema),
+      schema: beautifyGQLSchema(schema),
       data: data[table],
     })
   } catch (e) {
