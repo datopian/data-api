@@ -29,7 +29,7 @@ async function queryForData(schema, params) {
       variables[`cond_${k}`] = qp[k]
     }
   }
-  console.log("Variables = "+ JSON.stringify(variables))
+  // console.log("Variables = "+ JSON.stringify(variables))
   const query = buildParametrableQuery(schema, queryParams)
   return request(process.env.HASURA_URL + '/v1/graphql', query, variables).then(resp => resp[params.resource_id])
 }

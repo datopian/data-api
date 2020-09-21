@@ -58,7 +58,25 @@ router.get('/', function (req, res, next) {
 })
 
 router.get(`/${APP_VERSION}/datastore_search/help`, function (req, res, next) {
-  res.send('TODO this is the API help') //TODO help
+
+  helpTxt = `<h2 id="parameters">Parameters</h2>
+  <ul>
+  <li><strong>resource_id</strong> (string) – <em>MANDATORY</em> id or alias of the resource to be searched against
+  filters (dictionary) – matching conditions to select, e.g {“key1”: “a”, “key2”: “b”} (optional)</li>
+  <li><strong>q</strong> (string or dictionary) – JSON format query restrictions {“key1”: “a”, “key2”: “b”}, it’ll search on each specific field (optional)</li>
+  <li><strong>distinct_on</strong> [bool || list of field names] – If True: return only distinct rows, if list of fields will return only </li>
+  <li><strong>limit (int)</strong> – Maximum number of rows to return (optional, default: 100)</li>
+  <li><strong>offset (int)</strong> – offset this number of rows (optional)</li>
+  <li><strong>fields (list of strings)</strong> – fields to return (optional, default: all fields)</li>
+  </ul>
+  <h2 id="results-">Results:</h2>
+  <p>The result is a JSON  document containing:</p>
+  <ul>
+  <li>schema (JSON) – The data schema </li>
+  <li>data (JSON)  – matching results in JSON format</li>
+  </ul>
+  `
+  res.send(helpTxt) 
 })
 
 /* GET . */
