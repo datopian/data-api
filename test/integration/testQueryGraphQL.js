@@ -1,34 +1,36 @@
 const request = require('supertest')
 // const app = require('../../app')
-const { buildQueryForData, queryForData, buildParametrableQuery } = require('../../routes/queryGraphQL')
+const {
+  buildQueryForData,
+  queryForData,
+  buildParametrableQuery,
+} = require('../../routes/queryGraphQL')
 var assert = require('assert')
 const { gql } = require('graphql-request')
 const expect = require('chai').expect
-
 
 const mockFrictionlessTableSchema = {
   fields: [
     {
       name: 'float_column',
-      type: {name:'float8'},
+      type: { name: 'float8' },
     },
     {
       name: 'int_column',
-      type: {name:'Int'},
+      type: { name: 'Int' },
     },
     {
       name: 'text_column',
-      type: {name:'String'},
+      type: { name: 'String' },
     },
     {
       name: 'time_column',
-      type: {name:'timestamp'},
+      type: { name: 'timestamp' },
     },
   ],
 }
 
 describe('graphqlQueryBuilder', function () {
-
   // describe('function queryForData', function () {
   //   it('should return 404 for non existing resouce id', async function () {
   //     params = {
@@ -55,16 +57,14 @@ describe('graphqlQueryBuilder', function () {
   //   })
   // })
   describe('function buildParametrableQuery', function () {
-  
     it('builds a result query with all possible query params', function () {
-  
       const result = buildParametrableQuery(mockFrictionlessTableSchema, {
         resource_id: 'test_table',
         fields: ['int_column', 'text_column', 'float_column', 'time_column'],
         limit: 11,
         // order_by: {'int_column':'asc', 'text_column':'desc'}, // not implemented yet
         distinct_on: ['int_column', 'float_column'],
-        offset: 5
+        offset: 5,
       })
       // console.log("Parametrable query built: " + JSON.stringify(result))
       expect(result).to.be.a('string')
@@ -75,16 +75,10 @@ describe('graphqlQueryBuilder', function () {
       // limit
       expect(result).to.include('limit: 11')
       // expect(result).to.include('limit: $limit')  // FUTURE
-      expect(result).to.include('offset: $offset')  
+      expect(result).to.include('offset: $offset')
       expect(result).to.include('distinct_on: [int_column, float_column]')
       // expect(result).to.include(`order_by: {'int_column':'asc','text_column':'desc'}`)  // FUTURE
       // TODO more conditions
     })
-  
   })
-  
-
 })
-
-
-

@@ -444,4 +444,3 @@ input timestamp_comparison_exp {
   _neq: timestamp
   _nin: [timestamp!]
 }
-

@@ -58,7 +58,6 @@ router.get('/', function (req, res, next) {
 })
 
 router.get(`/${APP_VERSION}/datastore_search/help`, function (req, res, next) {
-
   helpTxt = `<h2 id="parameters">Parameters</h2>
   <ul>
   <li><strong>resource_id</strong> (string) – <em>MANDATORY</em> id or alias of the resource to be searched against
@@ -76,13 +75,12 @@ router.get(`/${APP_VERSION}/datastore_search/help`, function (req, res, next) {
   <li>data (JSON)  – matching results in JSON format</li>
   </ul>
   `
-  res.send(helpTxt) 
+  res.send(helpTxt)
 })
 
 /* GET . */
 router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
   try {
-
     if (!('resource_id' in req.query)) {
       res.redirect(`/${APP_VERSION}/datastore_search/help`)
     }
