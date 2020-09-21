@@ -20,28 +20,48 @@ This section discusses each CKAN parameter and its implementation (or not) in th
 
 - **resource_id** (string) – id or alias of the resource to be searched against. Mandatory parameter, implemented
 
-- **filters** (dictionary) – matching conditions to select, e.g {“key1”: “a”, “key2”: “b”} (optional). Optional parameter, implemented
+- **filters** (dictionary) – matching conditions to select, e.g {“key1”: “a”, “key2”: “b”} (optional). Optional parameter, use **q** query instead in the New API.
 
 - **q** (string or dictionary) – full text query. If it’s a string, it’ll search on all fields on each row. If it’s a dictionary as {“key1”: “a”, “key2”: “b”}, it’ll search on each specific field (optional)
 
-This field is different in the new API, the difference is that the new API only receives JSON
+This field is different in the new API, the main difference is that the new API only receives JSON. Current New API implementationis equivalent to filters. 
 
 - **distinct** (bool) – return only distinct rows (optional, default: false)
 
+This parameter is vastly different from the previous CKAN implementation. In GraphQL there is no notion of *row* (due to the simple fact that graphs do not have rows), this means that the option distinct does not mean the same for the new API and that we can also implement a new idea. 
+
+Due to the differences and to make it evident that the API is not the same the new implementation is called **distinct_on** and needs a list of *fields* to test for differences, so the new implementation can check for differences for each field.
+
+The New API does also implement (for backwards compatibility) a boolean value where it will query the graph schema and ask for different in every field of the schema, which would be equivalent to the CKAN *distinct* implementation.
+
 - **plain** (bool) – treat as plain text query (optional, default: true)
 - **language** (string) – language of the full text query (optional, default: english)
+
+Full text search was discussed to not be implemented in the [github issue](https://github.com/datopian/data-api/issues/7)
+
 - **limit** (int) – maximum number of rows to return (optional, default: 100, unless set in the site’s configuration ckan.datastore.search.rows_default, upper limit: 32000 unless set in site’s configuration ckan.datastore.search.rows_max)
+
+There is no difference in the implementation of this parameter
+
 - **offset** (int) – offset this number of rows (optional)
+
+This parameter that implies *pagination* to the response has not been completely implemented in the new API. The reason for this is that 
+
 - **fields** (list or comma separated string) – fields to return (optional, default: all fields in original order)
+
+
 - **sort** (string) – comma separated field names with ordering e.g.: “fieldname1, fieldname2 desc”
+
+
 - **include_total** (bool) – True to return total matching record count (optional, default: true)
+
+
 - **total_estimation_threshold** (int or None) – If “include_total” is True and “total_estimation_threshold” is not None and the **estimated total** (matching record count) is above the “total_estimation_threshold” then this datastore_search will return an estimate of the total, rather than a precise one. This is often good enough, and saves computationally expensive row counting for larger results (e.g. >100000 rows). The estimated total comes from the PostgreSQL table statistics, generated when Express Loader or DataPusher finishes a load, or by autovacuum. NB Currently estimation can’t be done if the user specifies ‘filters’ or ‘distinct’ options. (optional, default: None)
 - **records_format** (controlled list) – the format for the records return value: ‘objects’ (default) list of {fieldname1: value1, …} dicts, ‘lists’ list of [value1, value2, …] lists, ‘csv’ string containing comma-separated values with no header, ‘tsv’ string containing tab-separated values with no header
   Setting the plain flag to false enables the entire PostgreSQL full text search query language.
 
-A listing of all available resources can be found at the alias \_table_metadata.
+The result format in the New API is JSON 
 
-If you need to download the full resource, read Downloading Resources.
 
 Results:
 

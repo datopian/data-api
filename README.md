@@ -31,13 +31,13 @@ GraphQL Endpoint exposes the hasura GraphQL API.
 #### Parameters
 
 - **resource_id** (string) – _MANDATORY_ id or alias of the resource to be searched against
-  filters (dictionary) – matching conditions to select, e.g {“key1”: “a”, “key2”: “b”} (optional)
 - **q** (string or dictionary) – JSON format query restrictions {“key1”: “a”, “key2”: “b”}, it’ll search on each specific field (optional)
 - **distinct_on** [bool || list of field names] – If True: return only distinct rows, if list of fields will return only
 - **limit (int)** – Maximum number of rows to return (optional, default: 100)
 - **offset (int)** – offset this number of rows (optional)
 - **fields (list of strings)** – fields to return (optional, default: all fields)
 - ~~sort (string) – comma separated field names with ordering e.g.: “fieldname1, fieldname2 desc”~~ Not implemented yet
+- ~~filters (dictionary) – matching conditions to select, e.g {“key1”: “a”, “key2”: “b”} (optional)~~ Not implemented - similar to **q**
 
 #### Results:
 
