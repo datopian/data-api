@@ -107,3 +107,24 @@ The following list shows the CKAN return elements and the implementation in the 
 
 * records (depends on records_format value passed) – list of matching results 
     - This one now is named *data*
+
+
+## Response Size
+
+Depending on the response size the data transfer can have ill network effects or overloading the server connections. This is why asynchronous and streaming response data will be needed.
+
+The fact that the current implementation responds in JSON by default adds a data overload that is simply not there in formats like CSV which do not repeat the field names for every response element.
+
+Another option for big size response is to return a SFTP URL (or other secure file transfer protocol) instead. This URL will contain a file with the response data once the operation is complete. This way the connection can be freed and the client can poll for the file.
+
+This solution has two extra advantages:
+- the file acts like a cache and can be used in intermediate computations 
+- if there is any problem during the file transfer the result download can be restarted without recomputing the response and partial downloads are supported in most file transfer protocols.
+
+## Security
+
+Security needs to be implemented, one option is [JWT](https://en.wikipedia.org/wiki/JSON_Web_Token) which allows for signed requests in the GET query.
+
+JWT has the advantage of already being compatible with the current JSON parameter implementation in the New API.
+
+

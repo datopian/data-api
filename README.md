@@ -50,3 +50,26 @@ The result is a JSON document containing:
 - ~~total (int) – number of total matching records~~ Not implemented
 
 ## Examples
+
+### Help page 
+![Help Page](documentation/help-screen.png)
+
+### Basic query with limit
+
+With a test table having the following schema:
+
+![Test page](documentation/test-table-schema.png)
+
+We can make different queries:
+
+#### Query Table
+
+![Query Table](documentation/query-table.png)
+
+#### Query Table with Limit
+
+![Query Table Limit](documentation/query-table-limit.png)
+
+#### Query Table with Limit and Offset (pagination)
+
+![Query Table Limit Offset](documentation/query-table-limit-offset.png)

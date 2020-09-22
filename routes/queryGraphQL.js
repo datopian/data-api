@@ -17,7 +17,7 @@ async function queryForData(schema, params) {
 
   // list of all variables that we can filter on directly
   let variables = {
-    limit: params.limit,
+    // limit: params.limit,
     offset: params.offset,
   }
 
