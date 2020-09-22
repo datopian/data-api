@@ -16,3 +16,6 @@ sandbox/*
 
 # ctags
 tags
+
+# IntelliJ based 
+.idea

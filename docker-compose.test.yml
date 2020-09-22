@@ -11,6 +11,7 @@ services:
     environment:
       NODE_ENV: test
       HASURA_URL: http://graphql-engine:8080
+      POSTGRES_URL: postgres://ckan_default:password@db:5432/datastore_default
     command: sh -c './wait-for-it.sh graphql-engine:8080 -- yarn test'
 
   graphql-engine:

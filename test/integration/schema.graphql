@@ -1,0 +1,446 @@
+schema {
+  query: query_root
+  mutation: mutation_root
+  subscription: subscription_root
+}
+
+scalar float8
+
+# expression to compare columns of type float8. All fields are combined with logical 'AND'.
+input float8_comparison_exp {
+  _eq: float8
+  _gt: float8
+  _gte: float8
+  _in: [float8!]
+  _is_null: Boolean
+  _lt: float8
+  _lte: float8
+  _neq: float8
+  _nin: [float8!]
+}
+
+# expression to compare columns of type Int. All fields are combined with logical 'AND'.
+input Int_comparison_exp {
+  _eq: Int
+  _gt: Int
+  _gte: Int
+  _in: [Int!]
+  _is_null: Boolean
+  _lt: Int
+  _lte: Int
+  _neq: Int
+  _nin: [Int!]
+}
+
+# mutation root
+type mutation_root {
+  # delete data from the table: "test_table"
+  delete_test_table(
+    # filter the rows which have to be deleted
+    where: test_table_bool_exp!
+  ): test_table_mutation_response
+
+  # insert data into the table: "test_table"
+  insert_test_table(
+    # the rows to be inserted
+    objects: [test_table_insert_input!]!
+  ): test_table_mutation_response
+
+  # insert a single row into the table: "test_table"
+  insert_test_table_one(
+    # the row to be inserted
+    object: test_table_insert_input!
+  ): test_table
+
+  # update data of the table: "test_table"
+  update_test_table(
+    # increments the integer columns with given value of the filtered values
+    _inc: test_table_inc_input
+
+    # sets the columns of the filtered rows to the given values
+    _set: test_table_set_input
+
+    # filter the rows which have to be updated
+    where: test_table_bool_exp!
+  ): test_table_mutation_response
+}
+
+# column ordering options
+enum order_by {
+  # in the ascending order, nulls last
+  asc
+
+  # in the ascending order, nulls first
+  asc_nulls_first
+
+  # in the ascending order, nulls last
+  asc_nulls_last
+
+  # in the descending order, nulls first
+  desc
+
+  # in the descending order, nulls first
+  desc_nulls_first
+
+  # in the descending order, nulls last
+  desc_nulls_last
+}
+
+# query root
+type query_root {
+  # fetch data from the table: "test_table"
+  test_table(
+    # distinct select on columns
+    distinct_on: [test_table_select_column!]
+
+    # limit the number of rows returned
+    limit: Int
+
+    # skip the first n rows. Use only with order_by
+    offset: Int
+
+    # sort the rows by one or more columns
+    order_by: [test_table_order_by!]
+
+    # filter the rows returned
+    where: test_table_bool_exp
+  ): [test_table!]!
+
+  # fetch aggregated fields from the table: "test_table"
+  test_table_aggregate(
+    # distinct select on columns
+    distinct_on: [test_table_select_column!]
+
+    # limit the number of rows returned
+    limit: Int
+
+    # skip the first n rows. Use only with order_by
+    offset: Int
+
+    # sort the rows by one or more columns
+    order_by: [test_table_order_by!]
+
+    # filter the rows returned
+    where: test_table_bool_exp
+  ): test_table_aggregate!
+}
+
+# expression to compare columns of type String. All fields are combined with logical 'AND'.
+input String_comparison_exp {
+  _eq: String
+  _gt: String
+  _gte: String
+  _ilike: String
+  _in: [String!]
+  _is_null: Boolean
+  _like: String
+  _lt: String
+  _lte: String
+  _neq: String
+  _nilike: String
+  _nin: [String!]
+  _nlike: String
+  _nsimilar: String
+  _similar: String
+}
+
+# subscription root
+type subscription_root {
+  # fetch data from the table: "test_table"
+  test_table(
+    # distinct select on columns
+    distinct_on: [test_table_select_column!]
+
+    # limit the number of rows returned
+    limit: Int
+
+    # skip the first n rows. Use only with order_by
+    offset: Int
+
+    # sort the rows by one or more columns
+    order_by: [test_table_order_by!]
+
+    # filter the rows returned
+    where: test_table_bool_exp
+  ): [test_table!]!
+
+  # fetch aggregated fields from the table: "test_table"
+  test_table_aggregate(
+    # distinct select on columns
+    distinct_on: [test_table_select_column!]
+
+    # limit the number of rows returned
+    limit: Int
+
+    # skip the first n rows. Use only with order_by
+    offset: Int
+
+    # sort the rows by one or more columns
+    order_by: [test_table_order_by!]
+
+    # filter the rows returned
+    where: test_table_bool_exp
+  ): test_table_aggregate!
+}
+
+# columns and relationships of "test_table"
+type test_table {
+  float_column: float8
+  int_column: Int
+  text_column: String
+  time_column: timestamp
+}
+
+# aggregated selection of "test_table"
+type test_table_aggregate {
+  aggregate: test_table_aggregate_fields
+  nodes: [test_table!]!
+}
+
+# aggregate fields of "test_table"
+type test_table_aggregate_fields {
+  avg: test_table_avg_fields
+  count(columns: [test_table_select_column!], distinct: Boolean): Int
+  max: test_table_max_fields
+  min: test_table_min_fields
+  stddev: test_table_stddev_fields
+  stddev_pop: test_table_stddev_pop_fields
+  stddev_samp: test_table_stddev_samp_fields
+  sum: test_table_sum_fields
+  var_pop: test_table_var_pop_fields
+  var_samp: test_table_var_samp_fields
+  variance: test_table_variance_fields
+}
+
+# order by aggregate values of table "test_table"
+input test_table_aggregate_order_by {
+  avg: test_table_avg_order_by
+  count: order_by
+  max: test_table_max_order_by
+  min: test_table_min_order_by
+  stddev: test_table_stddev_order_by
+  stddev_pop: test_table_stddev_pop_order_by
+  stddev_samp: test_table_stddev_samp_order_by
+  sum: test_table_sum_order_by
+  var_pop: test_table_var_pop_order_by
+  var_samp: test_table_var_samp_order_by
+  variance: test_table_variance_order_by
+}
+
+# input type for inserting array relation for remote table "test_table"
+input test_table_arr_rel_insert_input {
+  data: [test_table_insert_input!]!
+}
+
+# aggregate avg on columns
+type test_table_avg_fields {
+  float_column: Float
+  int_column: Float
+}
+
+# order by avg() on columns of table "test_table"
+input test_table_avg_order_by {
+  float_column: order_by
+  int_column: order_by
+}
+
+# Boolean expression to filter rows from the table "test_table". All fields are combined with a logical 'AND'.
+input test_table_bool_exp {
+  _and: [test_table_bool_exp]
+  _not: test_table_bool_exp
+  _or: [test_table_bool_exp]
+  float_column: float8_comparison_exp
+  int_column: Int_comparison_exp
+  text_column: String_comparison_exp
+  time_column: timestamp_comparison_exp
+}
+
+# input type for incrementing integer column in table "test_table"
+input test_table_inc_input {
+  float_column: float8
+  int_column: Int
+}
+
+# input type for inserting data into table "test_table"
+input test_table_insert_input {
+  float_column: float8
+  int_column: Int
+  text_column: String
+  time_column: timestamp
+}
+
+# aggregate max on columns
+type test_table_max_fields {
+  float_column: float8
+  int_column: Int
+  text_column: String
+  time_column: timestamp
+}
+
+# order by max() on columns of table "test_table"
+input test_table_max_order_by {
+  float_column: order_by
+  int_column: order_by
+  text_column: order_by
+  time_column: order_by
+}
+
+# aggregate min on columns
+type test_table_min_fields {
+  float_column: float8
+  int_column: Int
+  text_column: String
+  time_column: timestamp
+}
+
+# order by min() on columns of table "test_table"
+input test_table_min_order_by {
+  float_column: order_by
+  int_column: order_by
+  text_column: order_by
+  time_column: order_by
+}
+
+# response of any mutation on the table "test_table"
+type test_table_mutation_response {
+  # number of affected rows by the mutation
+  affected_rows: Int!
+
+  # data of the affected rows by the mutation
+  returning: [test_table!]!
+}
+
+# input type for inserting object relation for remote table "test_table"
+input test_table_obj_rel_insert_input {
+  data: test_table_insert_input!
+}
+
+# ordering options when selecting data from "test_table"
+input test_table_order_by {
+  float_column: order_by
+  int_column: order_by
+  text_column: order_by
+  time_column: order_by
+}
+
+# select columns of table "test_table"
+enum test_table_select_column {
+  # column name
+  float_column
+
+  # column name
+  int_column
+
+  # column name
+  text_column
+
+  # column name
+  time_column
+}
+
+# input type for updating data in table "test_table"
+input test_table_set_input {
+  float_column: float8
+  int_column: Int
+  text_column: String
+  time_column: timestamp
+}
+
+# aggregate stddev on columns
+type test_table_stddev_fields {
+  float_column: Float
+  int_column: Float
+}
+
+# order by stddev() on columns of table "test_table"
+input test_table_stddev_order_by {
+  float_column: order_by
+  int_column: order_by
+}
+
+# aggregate stddev_pop on columns
+type test_table_stddev_pop_fields {
+  float_column: Float
+  int_column: Float
+}
+
+# order by stddev_pop() on columns of table "test_table"
+input test_table_stddev_pop_order_by {
+  float_column: order_by
+  int_column: order_by
+}
+
+# aggregate stddev_samp on columns
+type test_table_stddev_samp_fields {
+  float_column: Float
+  int_column: Float
+}
+
+# order by stddev_samp() on columns of table "test_table"
+input test_table_stddev_samp_order_by {
+  float_column: order_by
+  int_column: order_by
+}
+
+# aggregate sum on columns
+type test_table_sum_fields {
+  float_column: float8
+  int_column: Int
+}
+
+# order by sum() on columns of table "test_table"
+input test_table_sum_order_by {
+  float_column: order_by
+  int_column: order_by
+}
+
+# aggregate var_pop on columns
+type test_table_var_pop_fields {
+  float_column: Float
+  int_column: Float
+}
+
+# order by var_pop() on columns of table "test_table"
+input test_table_var_pop_order_by {
+  float_column: order_by
+  int_column: order_by
+}
+
+# aggregate var_samp on columns
+type test_table_var_samp_fields {
+  float_column: Float
+  int_column: Float
+}
+
+# order by var_samp() on columns of table "test_table"
+input test_table_var_samp_order_by {
+  float_column: order_by
+  int_column: order_by
+}
+
+# aggregate variance on columns
+type test_table_variance_fields {
+  float_column: Float
+  int_column: Float
+}
+
+# order by variance() on columns of table "test_table"
+input test_table_variance_order_by {
+  float_column: order_by
+  int_column: order_by
+}
+
+scalar timestamp
+
+# expression to compare columns of type timestamp. All fields are combined with logical 'AND'.
+input timestamp_comparison_exp {
+  _eq: timestamp
+  _gt: timestamp
+  _gte: timestamp
+  _in: [timestamp!]
+  _is_null: Boolean
+  _lt: timestamp
+  _lte: timestamp
+  _neq: timestamp
+  _nin: [timestamp!]
+}
