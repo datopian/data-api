@@ -23,7 +23,7 @@ describe('datastore_search endpoint', function () {
   it('redirects to help if no resource_id', function (done) {
     request(app)
       .get(`/${APP_VERSION}/datastore_search`)
-      .expect(302)
+      .expect(303)
       .expect('Location', `/${APP_VERSION}/datastore_search/help`)
       .end(done)
   })

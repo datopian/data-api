@@ -81,21 +81,21 @@ router.get(`/${APP_VERSION}/datastore_search/help`, function (req, res, next) {
 router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
   try {
     if (!('resource_id' in req.query)) {
-      res.redirect(`/${APP_VERSION}/datastore_search/help`)
+      return res.redirect(303, `/${APP_VERSION}/datastore_search/help`)
     }
     // console.log("Request: " + JSON.stringify(req))
-    // console.log("Query: " + JSON.stringify(req.query))
-    // console.log("Params: " + JSON.stringify(req.params))
+    // console.log('Query: ' + JSON.stringify(req.query))
+    // console.log('Params: ' + JSON.stringify(req.params))
     // console.log("Headers: " + JSON.stringify(req.headers))
     const table = req.query.resource_id
     // query for schema  -> this should be already in Frictionless format
     // const schema = await queryForSchema()
     const schema = await getGraphQLTableSchema(table)
-    // console.log("SCHEMA: "+ JSON.stringify(schema))
+    // console.log('SCHEMA: ' + JSON.stringify(schema))
     // query for data -> basically the call to queryGraphQL
     const data = await queryForData(schema, req.query)
 
-    // console.log("RESPONSE: "+ JSON.stringify(data))
+    // console.log('RESPONSE: ' + JSON.stringify(data))
     /*TODO*/
     /* Auth handling  ... maybe JWT? */
     // Mandatory GET parameters check
