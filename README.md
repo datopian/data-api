@@ -51,7 +51,8 @@ The result is a JSON document containing:
 
 ## Examples
 
-### Help page 
+### Help page
+
 ![Help Page](documentation/help-screen.png)
 
 ### Basic query with limit
