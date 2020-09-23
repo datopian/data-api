@@ -2,7 +2,7 @@
 
 Here we document the differences between this new API and [CKAN]() version
 
-By default all parameters and results from the new API are JSON, this differs from CKAN in which the get call parameters are non standard but have an ad-hoc syntax. This is to
+By default all parameters and results from the new API are JSON, this differs from CKAN in which the get call parameters are non standard but have an ad-hoc syntax.
 
 ## General Differences CKAN vs New API
 
@@ -10,7 +10,7 @@ The new API is entirely based on a GraphQL DB querying system, this changes the 
 
 CKAN targets a Postgresql DB, the difference with a GraphQL DB is that the queries that can be implemented are quite different.
 
-GraphQL queries need to be explicit, including even the fields ("columns" in a traditional DB), which means knowing the database and _"table"_ schema before making the query to be able to ask for the needed fields. This means that for
+GraphQL queries need to be explicit, including even the fields ("columns" in a traditional DB), which means knowing the database and _"table"_ schema before making the query to be able to ask for the needed fields. This means that for every query that requests for _"all"_ the fields there are two needed queries behind the scenes. An optimization would be to cache the schema.
 
 ## GET Parameters
 
