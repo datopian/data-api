@@ -1,4 +1,4 @@
-FROM node:12
+FROM node:12-slim
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -19,7 +19,6 @@ RUN yarn
 # RUN npm ci --only=production
 
 RUN ["chmod", "+x", "./wait-for-it.sh"]
-RUN ["chmod", "+x", "./wait-for-hasura.sh"]
 
 RUN ["yarn", "prettier", "--check", "."]
 
