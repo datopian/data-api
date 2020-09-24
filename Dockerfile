@@ -1,4 +1,4 @@
-FROM node:12-slim
+FROM node:12
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -18,7 +18,7 @@ RUN yarn
 # If you are building your code for production
 # RUN npm ci --only=production
 
-RUN ["chmod", "+x", "./wait-for-it.sh"]
+RUN ["chmod", "+x", "./curl-wait-for-it.sh"]
 
 RUN ["yarn", "prettier", "--check", "."]
 

@@ -8,11 +8,20 @@ services:
     depends_on:
       - graphql-engine
       - db
+    env_file:
+      - .env.example
     environment:
       NODE_ENV: test
       HASURA_URL: http://graphql-engine:8080
       POSTGRES_URL: postgres://ckan_default:password@db:5432/datastore_default
-    command: sh -c './wait-for-it.sh graphql-engine:8080 -- yarn test'
+    # command: sh -c './curl-wait-for-it.sh http://graphql-engine:8080/healthz -- yarn test'
+    command:
+      [
+        './curl-wait-for-it.sh',
+        'http://graphql-engine:8080/healthz',
+        'yarn',
+        'test',
+      ]
 
   graphql-engine:
     build:
