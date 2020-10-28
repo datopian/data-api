@@ -3,6 +3,7 @@ var router = express.Router()
 const { request, gql } = require('graphql-request')
 
 const { queryForData } = require('./queryGraphQL')
+const { json2csv, json2xslx } = require('./formatTransformations')
 
 const APP_VERSION = 'v1'
 
@@ -108,6 +109,35 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
   } catch (e) {
     console.error(e)
   }
+})
+
+/**
+ *
+ */
+router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
+  // get the graphql query from body
+  const query = req.body.query ? req.body.query : req.body
+
+  // console.log(' Download CALLED')
+  // console.log('Body: ', body)
+  // call GraphQL
+  const gqlRes = await request(`${process.env.HASURA_URL}/v1/graphql`, query)
+  // console.log('GraphQL response: ', gqlRes)
+  // // capture graphql response
+  // // get query format type, default JSON
+  let result = gqlRes // default response -> JSON, the same as graphql
+  if (req.params.format) {
+    const fmt = req.params.format.toLocaleLowerCase()
+    if (fmt == 'csv') {
+      result = json2csv(gqlRes)
+    } else if (fmt == 'xlsx') {
+      result = json2xslx(gqlRes)
+    }
+  } // else is by default the JSON
+  // stream result back to client
+  // const result = 'This is the result' // TODO erase this line
+  console.log('RESULT: ', result)
+  res.send(JSON.stringify(result))
 })
 
 module.exports = router
