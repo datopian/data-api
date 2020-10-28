@@ -117,7 +117,6 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
 router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
   // get the graphql query from body
   const query = req.body.query ? req.body.query : req.body
-
   // console.log(' Download CALLED')
   // console.log('Body: ', body)
   // call GraphQL
@@ -137,6 +136,11 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
   // stream result back to client
   // const result = 'This is the result' // TODO erase this line
   console.log('RESULT: ', result)
+  // res.attach(JSON.stringify(result))
+  // res.download(JSON.stringify(result))
+  // res.sendFile(JSON.stringify(result))
+  // Sending a response can be achieved by calling the res.send() method. The signature of this method looks like this: res.send([body]) where the body can be any of the following: Buffer, String, an Object and an Array.
+  // This method automatically sets the Content-Type response header as well based on the argument passed to the send() method, so for example if the [body] is a Buffer the Content-Type will be set to application/octet-stream unless of course we programmatically set it to be something else.
   res.send(JSON.stringify(result))
 })
 
