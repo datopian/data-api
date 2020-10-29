@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node -r dotenv/config ./bin/www",
     "test": "mocha -r dotenv/config --recursive",
+    "dev": "watch 'node -r dotenv/config ./bin/www'",
     "test:integration": "mocha -r dotenv/config --recursive \"./test/integration/*.js\"",
     "test:unit": "mocha -r dotenv/config --recursive \"./test/unit/*.js\""
   },
@@ -17,6 +18,7 @@
     "graphql": "^15.3.0",
     "graphql-request": "^3.1.0",
     "http-errors": "~1.6.3",
+    "json2csv": "^5.0.3",
     "morgan": "~1.9.1",
     "node-fetch": "^2.6.1",
     "pg": "^8.3.3"

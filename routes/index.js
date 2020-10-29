@@ -3,7 +3,7 @@ var router = express.Router()
 const { request, gql } = require('graphql-request')
 
 const { queryForData } = require('./queryGraphQL')
-const { json2csv, json2xslx } = require('./formatTransformations')
+const { json2csv, json2xslx } = require('./download')
 
 const APP_VERSION = 'v1'
 
@@ -55,7 +55,7 @@ function beautifyGQLSchema(gqlSchema) {
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  res.send('Home Page!!')
+  res.send('DATA-API Home Page!!')
 })
 
 router.get(`/${APP_VERSION}/datastore_search/help`, function (req, res, next) {
@@ -111,37 +111,69 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
   }
 })
 
+router.get(`/${APP_VERSION}/download`, async function (req, res, next) {
+  console.log(' Download CALLED')
+
+  res.send('THIS IS A RESPONSE')
+})
 /**
  *
  */
 router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
+  console.log(' Download CALLED')
+  // res.send('THIS IS A RESPONSE')
   // get the graphql query from body
+  // we might need to support maybe different formats: pure graphql or a json with fields detailing
+  // AND a query field
+  console.log('body: ', req.body)
+  console.log('query: ', req.query)
+  console.log('route: ', req.route)
+  // console.log(req)
   const query = req.body.query ? req.body.query : req.body
-  // console.log(' Download CALLED')
-  // console.log('Body: ', body)
+  console.log('Body: ', query)
+  let result = {}
   // call GraphQL
-  const gqlRes = await request(`${process.env.HASURA_URL}/v1/graphql`, query)
-  // console.log('GraphQL response: ', gqlRes)
-  // // capture graphql response
-  // // get query format type, default JSON
-  let result = gqlRes // default response -> JSON, the same as graphql
-  if (req.params.format) {
-    const fmt = req.params.format.toLocaleLowerCase()
-    if (fmt == 'csv') {
-      result = json2csv(gqlRes)
-    } else if (fmt == 'xlsx') {
-      result = json2xslx(gqlRes)
-    }
-  } // else is by default the JSON
+  try {
+    // TODO check graphql syntax
+    const gqlRes = await request(`${process.env.HASURA_URL}/v1/graphql`, query)
+    console.log('GraphQL response: ', gqlRes)
+    // // capture graphql response
+    // // get query format type, default JSON
+    result = gqlRes // default response -> JSON, the same as graphql
+    if (req.params.format) {
+      const fmt = req.params.format.toLocaleLowerCase()
+      if (fmt == 'csv') {
+        result = json2csv(gqlRes)
+      } else if (fmt == 'xlsx') {
+        result = json2xslx(gqlRes)
+      }
+    } // else is by default the JSON
+  } catch (e) {
+    console.error('Error during graphql call', e)
+  }
   // stream result back to client
   // const result = 'This is the result' // TODO erase this line
   console.log('RESULT: ', result)
-  // res.attach(JSON.stringify(result))
-  // res.download(JSON.stringify(result))
-  // res.sendFile(JSON.stringify(result))
-  // Sending a response can be achieved by calling the res.send() method. The signature of this method looks like this: res.send([body]) where the body can be any of the following: Buffer, String, an Object and an Array.
-  // This method automatically sets the Content-Type response header as well based on the argument passed to the send() method, so for example if the [body] is a Buffer the Content-Type will be set to application/octet-stream unless of course we programmatically set it to be something else.
+
+  // // official express doc: https://expressjs.com/en/api.html#res.attachment
+  res.attachment()
+  res.type('json')
+  // res.attachment() -> this might be the one I'm looking for with some tweaks, should set res.type() first to a file
+  // then create the file bynary as a stream and stream chunks through res.write() till there is nothing else.
+  // need to handle backpressure (check link below) while the general download is something like: https://www.semicolonworld.com/question/44449/download-a-file-from-nodejs-server-using-express
+  // once the file is
+  // res.download() -> this is for a file on disk  uses res.sendFile()
+  // res.sendFile() -> this is for a file on disk
+  // can check here: https://github.com/expressjs/express/blob/master/lib/response.js#L493 how sendFile handles the setup
+  // Excellent documentation here:
+  // Check for Streams: https://nodesource.com/blog/understanding-streams-in-nodejs/
+  // We could also handle compression
+  // zlib.createDeflate() compress data using deflate (a compression algorithm) into a stream
+  // res IS a stream and as such can handle streaming responses.
+  // What could be done is chunk the file and write it handling the backpressure
   res.send(JSON.stringify(result))
+  // res.write(result)
+  // res.end()
 })
 
 module.exports = router
