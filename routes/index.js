@@ -130,7 +130,7 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
   // we might need to support maybe different formats: pure graphql or a json with fields detailing
   // AND a query field
   // console.log('body: ', req.body)
-  console.log('query: ', req.query)
+  // console.log('query: ', req.query)
   // console.log('route: ', req.route)
   // console.log(req)
   const query = req.body.query ? req.body.query : req.body
@@ -145,14 +145,16 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
     // // capture graphql response
     // // get query format type, default JSON
     // result = gqlRes // default response -> JSON, the same as graphql
-    const ext = (req.params.format || req.query.format || 'json').toLowerCase()
-    console.log('format: ', ext, req.params)
+    const ext = (req.params.format || req.query.format || 'json')
+      .toLowerCase()
+      .trim()
+    const colSep = (req.query.field_separator || ',').trim() // req.params.field_separator ||
+    // console.log('format: ', ext, req.params)
     res.setHeader(
       'Content-Disposition',
       'attachment; filename="download.' + ext + '";'
     )
     if (ext != 'json') {
-      console.log('not json')
       // any spreadsheet supported by [js-xlsx](https://github.com/SheetJS/sheetjs)
       let wb = XLSX.utils.book_new()
       //iterate over the result sets and create a work sheet to append to the book
@@ -160,8 +162,34 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
         const ws = XLSX.utils.json_to_sheet(gqlRes[k])
         XLSX.utils.book_append_sheet(wb, ws, k)
       })
-      // console.log('workbook created from json: ', wb)
-      res.end(XLSX.write(wb, { type: 'buffer', bookType: ext }))
+      if (ext === 'csv' && colSep != ',') {
+        //deal with column and record different separators, include tab, pipe, semicolon, etc
+        // const recSep = (req.query.record_separator || undefined).trim() // req.params.field_separator ||
+        // console.log('writing csv stream with field_separator ', colSep, recSep)
+        // only send the first sheet
+        const sname = wb.SheetNames[0]
+        // console.log('sheet: ', sname)
+        const ws = wb.Sheets[sname]
+        // console.log('worksheet: ', ws)
+        // TODO record separator
+        // const csv = XLSX.utils.sheet_to_csv(ws, { FS: colSep, RS: recSep })
+        const csv = XLSX.utils.sheet_to_csv(ws, { FS: colSep })
+        // console.log('csv: ', csv)
+        const readable = Readable.from(csv, { encoding: 'utf8' })
+        // console.log('writing output ')
+        for await (const chunk of readable) {
+          // console.log('writing chunk: ', chunk)
+          if (!res.write(chunk)) {
+            // Handle backpressure
+            await once(res, 'drain')
+          }
+        }
+        res.end()
+      } else {
+        // console.log('workbook created from json: ', wb)
+        // console.log('sending all workbook: ')
+        res.end(XLSX.write(wb, { type: 'buffer', bookType: ext }))
+      }
     } else {
       // pure JSON, GraphQL already returns us that
       // Examples and docs here: https://nodesource.com/blog/understanding-streams-in-nodejs/
