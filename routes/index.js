@@ -130,7 +130,7 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
   // we might need to support maybe different formats: pure graphql or a json with fields detailing
   // AND a query field
   // console.log('body: ', req.body)
-  // console.log('query: ', req.query)
+  console.log('query: ', req.query)
   // console.log('route: ', req.route)
   // console.log(req)
   const query = req.body.query ? req.body.query : req.body
@@ -145,12 +145,14 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
     // // capture graphql response
     // // get query format type, default JSON
     // result = gqlRes // default response -> JSON, the same as graphql
-    const ext = (req.params.format || 'json').toLowerCase()
+    const ext = (req.params.format || req.query.format || 'json').toLowerCase()
+    console.log('format: ', ext, req.params)
     res.setHeader(
       'Content-Disposition',
       'attachment; filename="download.' + ext + '";'
     )
     if (ext != 'json') {
+      console.log('not json')
       // any spreadsheet supported by [js-xlsx](https://github.com/SheetJS/sheetjs)
       let wb = XLSX.utils.book_new()
       //iterate over the result sets and create a work sheet to append to the book
@@ -161,7 +163,7 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
       // console.log('workbook created from json: ', wb)
       res.end(XLSX.write(wb, { type: 'buffer', bookType: ext }))
     } else {
-      // pure JSON
+      // pure JSON, GraphQL already returns us that
       // Examples and docs here: https://nodesource.com/blog/understanding-streams-in-nodejs/
       // is json format, need to convert it to stream type it and stream it back to the client
       const readable = Readable.from(JSON.stringify(gqlRes), {
