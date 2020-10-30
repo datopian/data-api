@@ -1,5 +1,8 @@
 var express = require('express')
 var router = express.Router()
+const { Readable, finished } = require('stream')
+const { once } = require('events')
+
 const { request, gql } = require('graphql-request')
 
 const { queryForData } = require('./queryGraphQL')
@@ -111,17 +114,17 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
   }
 })
 
-router.get(`/${APP_VERSION}/download`, async function (req, res, next) {
-  console.log(' Download CALLED')
+// router.get(`/${APP_VERSION}/download`, async function (req, res, next) {
+//   console.log(' Download CALLED')
 
-  res.send('THIS IS A RESPONSE')
-})
+//   res.send('THIS IS A RESPONSE')
+// })
 /**
  *
  */
 
 router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
-  console.log(' Download CALLED')
+  // console.log(' Download CALLED')
   // res.send('THIS IS A RESPONSE')
   // get the graphql query from body
   // we might need to support maybe different formats: pure graphql or a json with fields detailing
@@ -142,20 +145,36 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
     // // capture graphql response
     // // get query format type, default JSON
     // result = gqlRes // default response -> JSON, the same as graphql
-    const ext = (req.params.format || 'csv').toLowerCase()
+    const ext = (req.params.format || 'json').toLowerCase()
     res.setHeader(
       'Content-Disposition',
       'attachment; filename="download.' + ext + '";'
     )
-    let wb = XLSX.utils.book_new()
-    //iterate over the result sets and create a work sheet to append to the book
-    Object.keys(gqlRes).map((k) => {
-      const ws = XLSX.utils.json_to_sheet(gqlRes[k])
-      XLSX.utils.book_append_sheet(wb, ws, k)
-    })
-
-    // console.log('workbook created from json: ', wb)
-    res.end(XLSX.write(wb, { type: 'buffer', bookType: ext }))
+    if (ext != 'json') {
+      // any spreadsheet supported by [js-xlsx](https://github.com/SheetJS/sheetjs)
+      let wb = XLSX.utils.book_new()
+      //iterate over the result sets and create a work sheet to append to the book
+      Object.keys(gqlRes).map((k) => {
+        const ws = XLSX.utils.json_to_sheet(gqlRes[k])
+        XLSX.utils.book_append_sheet(wb, ws, k)
+      })
+      // console.log('workbook created from json: ', wb)
+      res.end(XLSX.write(wb, { type: 'buffer', bookType: ext }))
+    } else {
+      // pure JSON
+      // Examples and docs here: https://nodesource.com/blog/understanding-streams-in-nodejs/
+      // is json format, need to convert it to stream type it and stream it back to the client
+      const readable = Readable.from(JSON.stringify(gqlRes), {
+        encoding: 'utf8',
+      })
+      for await (const chunk of readable) {
+        if (!res.write(chunk)) {
+          // Handle backpressure
+          await once(res, 'drain')
+        }
+      }
+      res.end()
+    }
     // res.send(result)
   } catch (e) {
     console.error('Error during graphql call', e)
