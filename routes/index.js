@@ -157,6 +157,11 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
     if (ext != 'json') {
       // any spreadsheet supported by [js-xlsx](https://github.com/SheetJS/sheetjs)
       let wb = XLSX.utils.book_new()
+      // TODO control the column/field order:
+      // https://stackoverflow.com/questions/56854160/sort-and-filter-columns-with-xlsx-js-after-json-to-sheet
+      // https://github.com/SheetJS/sheetjs/issues/738
+      // it needs to receive the header parameter with the desired column order
+
       //iterate over the result sets and create a work sheet to append to the book
       Object.keys(gqlRes).map((k) => {
         const ws = XLSX.utils.json_to_sheet(gqlRes[k])
