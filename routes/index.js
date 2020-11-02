@@ -118,7 +118,8 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
 //test function to manually check downloads
 router.get(`/test/download`, async function (req, res, next) {
   // res.sendFile('./test-download.html')
-  res.sendFile(path.join(__dirname + '/test-download.html'))
+  const ppath = __dirname.split(path.sep).slice(0, -1).join(path.sep)
+  res.sendFile(path.join(ppath + '/test/test-download.html'))
 })
 /**
  *
@@ -129,18 +130,18 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
   // get the graphql query from body
   // we might need to support maybe different formats: pure graphql or a json with fields detailing
   // AND a query field
-  console.log('body: ', req.body)
-  console.log('query: ', req.query)
-  console.log('route: ', req.route)
+  // console.log('body: ', req.body)
+  // console.log('query: ', req.query)
+  // console.log('route: ', req.route)
   // console.log(req)
   const query = req.body.query ? req.body.query : req.body
-  console.log('QUERY: ', query)
+  // console.log('QUERY: ', query)
   // call GraphQL
   try {
     // TODO check graphql syntax
     const gqlRes = await request(`${process.env.HASURA_URL}/v1/graphql`, query)
-    console.log('Response type: ', typeof gqlRes, typeof JSON.stringify(gqlRes))
-    console.log('GraphQL response: ', gqlRes)
+    // console.log('Response type: ', typeof gqlRes, typeof JSON.stringify(gqlRes))
+    // console.log('GraphQL response: ', gqlRes)
 
     // // capture graphql response
     // // get query format type, default JSON
@@ -150,12 +151,20 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
       .trim()
     const colSep = (req.query.field_separator || ',').trim() // req.params.field_separator ||
     // console.log('format: ', ext, req.params)
-    console.log('response headers BEFORE: ', res.getHeaders())
+    // console.log('response headers BEFORE: ', res.getHeaders())
     res.set(
       'Content-Disposition',
       'attachment; filename="download.' + ext + '";'
     )
-    console.log('response headers AFTER: ', res.getHeaders())
+    // res.append(
+    //   'Content-Disposition',
+    //   'attachment; filename="download.' + ext + '";'
+    // )
+    // res.setHeader(
+    //   'Content-Disposition',
+    //   'attachment; filename="download.' + ext + '";'
+    // )
+    // console.log('response headers AFTER: ', res.getHeaders())
     if (ext != 'json') {
       // any spreadsheet supported by [js-xlsx](https://github.com/SheetJS/sheetjs)
       let wb = XLSX.utils.book_new()
@@ -170,9 +179,11 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
         XLSX.utils.book_append_sheet(wb, ws, k)
       })
       if (ext === 'csv' && colSep != ',') {
+        res.set('Content-Type', 'text/csv')
+        // console.log('response headers AFTER: ', res.getHeaders())
         //deal with column and record different separators, include tab, pipe, semicolon, etc
         // const recSep = (req.query.record_separator || undefined).trim() // req.params.field_separator ||
-        console.log('writing csv stream with field_separator ', colSep)
+        // console.log('writing csv stream with field_separator ', colSep)
         // only send the first sheet
         const sname = wb.SheetNames[0]
         // console.log('sheet: ', sname)
@@ -194,14 +205,25 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
         res.end()
       } else {
         // console.log('workbook created from json: ', wb)
-        console.log('sending all workbook: ')
+        // console.log('sending all workbook: ')
+        if (ext === 'csv') {
+          res.set('Content-Type', 'text/csv')
+        } else {
+          res.set(
+            'Content-Type',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          )
+        }
+        // console.log('response headers AFTER: ', res.getHeaders())
         res.end(XLSX.write(wb, { type: 'buffer', bookType: ext }))
       }
     } else {
-      console.log('Sending JSON response')
+      // console.log('Sending JSON response')
       // pure JSON, GraphQL already returns us that
       // Examples and docs here: https://nodesource.com/blog/understanding-streams-in-nodejs/
       // is json format, need to convert it to stream type it and stream it back to the client
+      res.set('Content-Type', 'application/json')
+      // console.log('response headers AFTER: ', res.getHeaders())
       const readable = Readable.from(JSON.stringify(gqlRes), {
         encoding: 'utf8',
       })

@@ -1,0 +1,59 @@
+<pre>
+<h3>Manual download file from query test</h3>:
+
+<button id="b-json" download="dwnl.json">JSON</button>
+<button id="b-csv" download="dwnl.csv">CSV</button>
+<button id="b-tsv" download="dwnl.tsv">TSV</button>
+<button id="b-xlsx"  download="dwnl.xlsx">XLSX</button>
+
+
+</br>
+
+<form action="/v1/download" method="POST">
+  <div>
+    <label for="json">Query</label>
+    <textarea name="json" id="json" value=""></textarea>
+  </div>
+  <div>
+    <button>JSON </button>
+  </div>
+</form>
+
+
+<script>
+
+const QUERY = `
+      query MyQuery {
+        test_table(limit: 10) {
+            float_column
+            int_column
+            text_column
+            time_column
+        }
+      }`
+
+async function createListener(url) {
+ try {     
+    const response = await fetch(url, {
+      method: 'post',
+      headers: {'Content-Type': 'application/json'},
+      body:JSON.stringify({ query: QUERY})
+    })
+    console.log('Completed!', response)
+    console.log(response.body)
+    return response.body
+  } catch(err) {
+    console.error(`Error: ${err}`)
+  }
+}
+
+document.getElementById('b-json').addEventListener('click', async _ => createListener('/v1/download'))
+document.getElementById('b-csv').addEventListener('click', async _ => createListener('/v1/download?format=csv'))
+document.getElementById('b-tsv').addEventListener('click', async _ => createListener('/v1/download?format=csv&field_separator=%09'))
+document.getElementById('b-xlsx').addEventListener('click', async _ => createListener('/v1/download?format=xlsx'))
+
+document.getElementById('json').value = QUERY
+
+</script>
+
+</pre>

@@ -1,9 +1,10 @@
 const request = require('supertest')
 const app = require('../../app')
+const assert = require('assert')
 
 const QUERY = `
 query MyQuery {
-  test_table(limit: 10) {
+  test_table(limit: 100) {
     float_column
     int_column
     text_column
@@ -35,6 +36,13 @@ describe('data-api-download', function () {
         // console.log('ERROR = ', err)
         // console.log('response Text: ', res.text)
         // console.log('Response Body: ', res.body)
+        // Check headers
+        // console.log(res.header)
+        assert(
+          res.header['content-disposition'] ==
+            'attachment; filename="download.json";'
+        )
+        assert(res.header['content-type'] == 'application/json; charset=utf-8')
         // check that is a JSON
         JSON.parse(res.text)
         done()
@@ -51,10 +59,13 @@ describe('data-api-download', function () {
       .end(function (err, res) {
         // console.log('ERROR = ', err)
         // console.log('response: ', res.text)
+        assert(
+          res.header['content-disposition'] ==
+            'attachment; filename="download.json";'
+        )
+        assert(res.header['content-type'] == 'application/json; charset=utf-8')
         // check that is a JSON
         JSON.parse(res.text)
-        // TODO check that is attachment
-        // TODO check attachment name
         done()
       })
   })
@@ -70,8 +81,36 @@ describe('data-api-download', function () {
         console.log('ERROR = ', err)
         // console.log('response TEXT: ', res.text)
         // console.log('response BODY: ', res.body)
-        // check that is a JSON
-        // JSON.parse(res.text)
+        console.log(res.header)
+        assert(
+          res.header['content-disposition'] ==
+            'attachment; filename="download.csv";'
+        )
+        assert(res.header['content-type'] == 'text/csv; charset=utf-8')
+        // check that is a CSV
+        done()
+      })
+  })
+
+  it('should return pipe-separated-CSV when format=CSV and field_separator=|', function (done) {
+    request(app)
+      .post('/v1/download?format=csv&field_separator=|')
+      .send({
+        query: QUERY,
+      })
+      .expect(200)
+      .end(function (err, res) {
+        console.log('ERROR = ', err)
+        // console.log('response TEXT: ', res.text)
+        // console.log('response BODY: ', res.body)
+        console.log(res.header)
+        assert(
+          res.header['content-disposition'] ==
+            'attachment; filename="download.csv";'
+        )
+        assert(res.header['content-type'] == 'text/csv; charset=utf-8')
+        // check that is a pipe-separated-CSV
+
         done()
       })
   })
@@ -87,8 +126,16 @@ describe('data-api-download', function () {
         console.log('ERROR = ', err)
         // console.log('response TEXT: ', res.text)
         // console.log('response BODY: ', res.body)
-        // check that is a JSON
-        // JSON.parse(res.text)
+        console.log(res.header)
+        assert(
+          res.header['content-disposition'] ==
+            'attachment; filename="download.xlsx";'
+        )
+        assert(
+          res.header['content-type'] ==
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        // check that is an Excel file
         done()
       })
   })
