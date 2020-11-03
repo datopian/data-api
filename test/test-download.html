@@ -1,4 +1,8 @@
 <pre>
+
+
+
+
 <h3>Manual download file from query test</h3>:
 
 <button id="b-json" download="dwnl.json">JSON</button>
@@ -18,6 +22,8 @@
     <button>JSON </button>
   </div>
 </form>
+
+
 
 
 <script>
@@ -41,6 +47,23 @@ async function createListener(url) {
     })
     console.log('Completed!', response)
     console.log(response.body)
+    // Try to find out the filename from the content disposition `filename` value
+    var disposition = response.headers['content-disposition'];
+    var matches = /"([^"]*)"/.exec(disposition);
+    var filename = (matches != null && matches[1] ? matches[1] : 'file.json');
+
+    // The actual download
+    var blob = new Blob([response.body], { type: filename });
+    var link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = filename;
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link); 
+
     return response.body
   } catch(err) {
     console.error(`Error: ${err}`)
