@@ -118,6 +118,8 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
  *
  */
 
+DOWNLOAD_FORMATS_SUPPORTED = ['json', 'csv', 'xlsx', 'ods']
+
 router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
   console.log(' Download CALLED')
   // get the graphql query from body
@@ -131,6 +133,14 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
     const ext = (req.params.format || req.query.format || 'json')
       .toLowerCase()
       .trim()
+    if (!DOWNLOAD_FORMATS_SUPPORTED.includes(ext)) {
+      res
+        .status(400)
+        .send(
+          'Bad format. Supported Formats: ' +
+            JSON.stringify(DOWNLOAD_FORMATS_SUPPORTED)
+        )
+    }
     const colSep = (req.query.field_separator || ',').trim()
     res.set(
       'Content-Disposition',

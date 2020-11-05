@@ -139,4 +139,23 @@ describe('data-api-download', function () {
         done()
       })
   })
+
+  it('should return 400 when asked format is not supported', function (done) {
+    request(app)
+      .post('/v1/download?format=not_supported')
+      .send({
+        query: QUERY,
+      })
+      .expect(400)
+      .end(function (err, res) {
+        console.log('ERROR = ', err)
+        assert(res.statusCode === 400)
+        console.log(res.statusCode)
+        console.log(
+          res.text ===
+            'Bad format. Supported Formats: ["json","csv","xlsx","ods"]'
+        )
+        done()
+      })
+  })
 })
