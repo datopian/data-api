@@ -1,8 +1,13 @@
 var express = require('express')
 var router = express.Router()
+const { Readable, finished } = require('stream')
+const { once } = require('events')
+
 const { request, gql } = require('graphql-request')
 
 const { queryForData } = require('./queryGraphQL')
+const XLSX = require('xlsx')
+const path = require('path')
 
 const APP_VERSION = 'v1'
 
@@ -54,7 +59,7 @@ function beautifyGQLSchema(gqlSchema) {
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  res.send('Home Page!!')
+  res.send('DATA-API Home Page!!')
 })
 
 router.get(`/${APP_VERSION}/datastore_search/help`, function (req, res, next) {
@@ -83,19 +88,12 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
     if (!('resource_id' in req.query)) {
       return res.redirect(303, `/${APP_VERSION}/datastore_search/help`)
     }
-    // console.log("Request: " + JSON.stringify(req))
-    // console.log('Query: ' + JSON.stringify(req.query))
-    // console.log('Params: ' + JSON.stringify(req.params))
-    // console.log("Headers: " + JSON.stringify(req.headers))
     const table = req.query.resource_id
     // query for schema  -> this should be already in Frictionless format
     // const schema = await queryForSchema()
     const schema = await getGraphQLTableSchema(table)
-    // console.log('SCHEMA: ' + JSON.stringify(schema))
     // query for data -> basically the call to queryGraphQL
     const data = await queryForData(schema, req.query)
-
-    // console.log('RESPONSE: ' + JSON.stringify(data))
     /*TODO*/
     /* Auth handling  ... maybe JWT? */
     // Mandatory GET parameters check
@@ -107,6 +105,106 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
     })
   } catch (e) {
     console.error(e)
+  }
+})
+
+//TODO finish this test function to manually check downloads
+// router.get(`/test/download`, async function (req, res, next) {
+//   // res.sendFile('./test-download.html')
+//   const ppath = __dirname.split(path.sep).slice(0, -1).join(path.sep)
+//   res.sendFile(path.join(ppath + '/test/test-download.html'))
+// })
+/**
+ *
+ */
+
+DOWNLOAD_FORMATS_SUPPORTED = ['json', 'csv', 'xlsx', 'ods']
+
+router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
+  console.log(' Download CALLED')
+  // get the graphql query from body
+  const query = req.body.query ? req.body.query : req.body
+  // call GraphQL
+  try {
+    // TODO check graphql syntax BEFORE sending it
+    const gqlRes = await request(`${process.env.HASURA_URL}/v1/graphql`, query)
+
+    // // capture graphql response
+    const ext = (req.params.format || req.query.format || 'json')
+      .toLowerCase()
+      .trim()
+    if (!DOWNLOAD_FORMATS_SUPPORTED.includes(ext)) {
+      res
+        .status(400)
+        .send(
+          'Bad format. Supported Formats: ' +
+            JSON.stringify(DOWNLOAD_FORMATS_SUPPORTED)
+        )
+    }
+    const colSep = (req.query.field_separator || ',').trim()
+    res.set(
+      'Content-Disposition',
+      'attachment; filename="download.' + ext + '";'
+    )
+    if (ext != 'json') {
+      // any spreadsheet supported by [js-xlsx](https://github.com/SheetJS/sheetjs)
+      let wb = XLSX.utils.book_new()
+      // TODO control the column/field order:
+      // https://stackoverflow.com/questions/56854160/sort-and-filter-columns-with-xlsx-js-after-json-to-sheet
+      // https://github.com/SheetJS/sheetjs/issues/738
+      // it needs to receive the header parameter with the desired column order
+
+      //iterate over the result sets and create a work sheet to append to the book
+      Object.keys(gqlRes).map((k) => {
+        const ws = XLSX.utils.json_to_sheet(gqlRes[k])
+        XLSX.utils.book_append_sheet(wb, ws, k)
+      })
+      if (ext === 'csv' && colSep != ',') {
+        res.set('Content-Type', 'text/csv')
+        // only send the first sheet
+        const sname = wb.SheetNames[0]
+        const ws = wb.Sheets[sname]
+        // TODO deal with record separator
+        // const recSep = (req.query.record_separator || undefined).trim() // req.params.field_separator ||
+        // const csv = XLSX.utils.sheet_to_csv(ws, { FS: colSep, RS: recSep })
+        const csv = XLSX.utils.sheet_to_csv(ws, { FS: colSep })
+        const readable = Readable.from(csv, { encoding: 'utf8' })
+        for await (const chunk of readable) {
+          if (!res.write(chunk)) {
+            // Handle backpressure
+            await once(res, 'drain')
+          }
+        }
+        res.end()
+      } else {
+        if (ext === 'csv') {
+          res.set('Content-Type', 'text/csv')
+        } else {
+          res.set(
+            'Content-Type',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          )
+        }
+        res.end(XLSX.write(wb, { type: 'buffer', bookType: ext }))
+      }
+    } else {
+      // pure JSON, GraphQL already returns us that
+      // Examples and docs here: https://nodesource.com/blog/understanding-streams-in-nodejs/
+      // is json format, need to convert it to stream type it and stream it back to the client
+      res.set('Content-Type', 'application/json')
+      const readable = Readable.from(JSON.stringify(gqlRes), {
+        encoding: 'utf8',
+      })
+      for await (const chunk of readable) {
+        if (!res.write(chunk)) {
+          await once(res, 'drain')
+        }
+      }
+      res.end()
+    }
+  } catch (e) {
+    console.error('Error during graphql call', e)
+    res.status(500).end()
   }
 })
 
