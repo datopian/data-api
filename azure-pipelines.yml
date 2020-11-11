@@ -1,0 +1,33 @@
+trigger:
+  branches:
+    include:
+    - master
+    - develop
+  
+stages:
+- stage: Build
+  jobs:
+  - job: 'BuildPushDockerImage'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - script: |
+        echo $(system.definitionId)
+        echo "##vso[task.setvariable variable=eds.dataapi.version]$(cat .version)"
+      displayName: 'Get version number'
+    - script: |
+        echo "##vso[build.updatebuildnumber]$(eds.dataapi.version)-${BUILD_BUILDNUMBER}"
+      displayName: 'Update build version'
+    - task: Docker@2
+      displayName: 'Build and Push an image'
+      inputs:
+        containerRegistry: 'EDS Azure Container Registry ReadWrite - Docker Registry'
+        repository: 'eds-data-api'
+        tags: '$(eds.dataapi.version)-$(Build.SourceBranchName).$(Build.BuildId)'
+    - script: |
+        echo -n $(eds.dataapi.version)-$(Build.SourceBranchName).$(Build.BuildId) > $(Build.ArtifactStagingDirectory)/imagetag
+      displayName: 'Save Image name'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: 'drop'
