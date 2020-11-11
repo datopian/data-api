@@ -21,3 +21,6 @@ tags
 themes/frontend-eds/*
 
 .github
+
+azure-pipelines.yml
+.version
