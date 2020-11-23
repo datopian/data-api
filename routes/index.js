@@ -118,7 +118,7 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
  *
  */
 
-DOWNLOAD_FORMATS_SUPPORTED = ['json', 'csv', 'xlsx', 'ods']
+DOWNLOAD_FORMATS_SUPPORTED = ['json', 'csv', 'tsv', 'xlsx', 'ods']
 
 router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
   // get the graphql query from body
@@ -158,15 +158,17 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
         const ws = XLSX.utils.json_to_sheet(gqlRes[k])
         XLSX.utils.book_append_sheet(wb, ws, k)
       })
-      if (ext === 'csv' && colSep != ',') {
+      if (ext === 'tsv' || (ext === 'csv' && colSep != ',')) {
         res.set('Content-Type', 'text/csv')
         // only send the first sheet
         const sname = wb.SheetNames[0]
         const ws = wb.Sheets[sname]
+        // set TAB separator for TSV format
+        const sep = ext === 'tsv' ? '\t' : colSep
         // TODO deal with record separator
         // const recSep = (req.query.record_separator || undefined).trim() // req.params.field_separator ||
         // const csv = XLSX.utils.sheet_to_csv(ws, { FS: colSep, RS: recSep })
-        const csv = XLSX.utils.sheet_to_csv(ws, { FS: colSep })
+        const csv = XLSX.utils.sheet_to_csv(ws, { FS: sep })
         const readable = Readable.from(csv, { encoding: 'utf8' })
         for await (const chunk of readable) {
           if (!res.write(chunk)) {
