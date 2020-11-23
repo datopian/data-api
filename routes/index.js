@@ -13,8 +13,6 @@ const APP_VERSION = 'v1'
 
 /* Gets the schema from a GraphQL*/
 async function getGraphQLTableSchema(resource_id) {
-  // console.log("ResourceID: " + resource_id)
-
   const queryForSchema = gql`
   {
     __type(name: "${resource_id}") {

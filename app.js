@@ -3,7 +3,6 @@ require('dotenv').config()
 var createError = require('http-errors')
 var express = require('express')
 var cors = require('cors')
-// var path = require('path')
 var cookieParser = require('cookie-parser')
 var logger = require('morgan')
 var proxy = require('express-http-proxy')
@@ -18,8 +17,6 @@ app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
-// No need for static dir for now as we're building an API only app
-// app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter)
 
