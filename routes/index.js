@@ -121,7 +121,6 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
 DOWNLOAD_FORMATS_SUPPORTED = ['json', 'csv', 'xlsx', 'ods']
 
 router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
-  console.log(' Download CALLED')
   // get the graphql query from body
   const query = req.body.query ? req.body.query : req.body
   // call GraphQL
