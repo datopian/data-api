@@ -1,8 +1,4 @@
 <pre>
-
-
-
-
 <h3>Manual download file from query test</h3>:
 
 <button id="b-json" download="dwnl.json">JSON</button>
@@ -20,9 +16,6 @@
     <button>JSON </button>
   </div>
 </form>
-
-
-
 
 <script>
 
@@ -57,11 +50,8 @@ async function createListener(url) {
     link.download = filename;
 
     document.body.appendChild(link);
-
     link.click();
-
     document.body.removeChild(link); 
-
     return response.body
   } catch(err) {
     console.error(`Error: ${err}`)
@@ -70,7 +60,7 @@ async function createListener(url) {
 
 document.getElementById('b-json').addEventListener('click', async _ => createListener('/v1/download'))
 document.getElementById('b-csv').addEventListener('click', async _ => createListener('/v1/download?format=csv'))
-document.getElementById('b-tsv').addEventListener('click', async _ => createListener('/v1/download?format=csv&field_separator=%09'))
+document.getElementById('b-tsv').addEventListener('click', async _ => createListener('/v1/download?format=tsv'))
 document.getElementById('b-xlsx').addEventListener('click', async _ => createListener('/v1/download?format=xlsx'))
 
 document.getElementById('json').value = QUERY

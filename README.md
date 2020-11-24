@@ -19,6 +19,7 @@ The current version is **v1**
 ### Endpoints
 
 - /{APP_VERSION}/graphql
+- /{APP_VERSION}/download
 - /{APP_VERSION}/datastore_search
 - /{APP_VERSION}/datastore_search/help
 
