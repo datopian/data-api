@@ -121,12 +121,11 @@ DOWNLOAD_FORMATS_SUPPORTED = ['json', 'csv', 'tsv', 'xlsx', 'ods']
 router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
   // get the graphql query from body
   const query = req.body.query ? req.body.query : req.body
+  const xlsxHeader = req.body.header ? req.body.header : undefined
+  // TODO header verification, else it will break when ordering fields
   // call GraphQL
   try {
-    // TODO check graphql syntax BEFORE sending it
-    const gqlRes = await request(`${process.env.HASURA_URL}/v1/graphql`, query)
-
-    // // capture graphql response
+    // Some checks before the DB call
     const ext = (req.params.format || req.query.format || 'json')
       .toLowerCase()
       .trim()
@@ -137,12 +136,18 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
           'Bad format. Supported Formats: ' +
             JSON.stringify(DOWNLOAD_FORMATS_SUPPORTED)
         )
+        .end()
+      return
     }
     const colSep = (req.query.field_separator || ',').trim()
     res.set(
       'Content-Disposition',
       'attachment; filename="download.' + ext + '";'
     )
+    // TODO check graphql syntax BEFORE sending it
+    const gqlRes = await request(`${process.env.HASURA_URL}/v1/graphql`, query)
+
+    // // capture graphql response
     if (ext != 'json') {
       // any spreadsheet supported by [js-xlsx](https://github.com/SheetJS/sheetjs)
       let wb = XLSX.utils.book_new()
@@ -153,7 +158,9 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
 
       //iterate over the result sets and create a work sheet to append to the book
       Object.keys(gqlRes).map((k) => {
-        const ws = XLSX.utils.json_to_sheet(gqlRes[k])
+        const ws = xlsxHeader
+          ? XLSX.utils.json_to_sheet(gqlRes[k], { header: xlsxHeader })
+          : XLSX.utils.json_to_sheet(gqlRes[k])
         XLSX.utils.book_append_sheet(wb, ws, k)
       })
       if (ext === 'tsv' || (ext === 'csv' && colSep != ',')) {
