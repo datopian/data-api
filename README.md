@@ -80,17 +80,15 @@ We can make different queries:
 
 ## Contributing
 
-### Local development environment
-
-1. launch bg services (postgres + hasura) (`bash run-mock-environment.sh`)
-2. `cp .env.example .env`
-3. `yarn`
+1. copy env variables - `cp .env.example .env`
+2. set up background services - this repo contains a mock environment you can launch with `bash run-mock-environment.sh` or if connecting to an existing one edit the URLs in the `.env` file
+3. install dependencies - `yarn`
 4. `yarn start` to launch server / `yarn test` to run tests
-5. install and use prettier to format code - https://prettier.io/docs/en/install.html (otherwise new builds will likely fail)
+5. setup automatic code formatter - install and use [prettier](https://prettier.io/docs/en/install.html), if using vscode install [prettier-vscode extention](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
 
 Please don't forget to add new variables to `.env.example` - they also will be used in ci tests.
 
-### CI
+### GitHub CI
 
 #### Tests
 
@@ -106,4 +104,16 @@ You will need to navigate there:
 
 #### Docker image builds
 
-After every push to master and successful tests there is a new docker image built here https://hub.docker.com/repository/docker/datopian/data-api/builds
+After every push to [master](https://github.com/datopian/data-api/tree/master) or a pull request to this branch and successful tests there is a new docker image built here https://hub.docker.com/repository/docker/datopian/data-api/builds
+
+## Building
+
+New images can be build with the provided [Dockerfile](./Dockerfile) or fetched from [dockerhub](https://hub.docker.com/repository/docker/datopian/data-api).
+
+## Deployment
+
+Can be deployed as a usual docker container. An environement for this microservice should contain:
+
+1. postgres database
+2. hasura
+3. environment variables (see [.env.example](/.env.example))
