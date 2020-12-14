@@ -13,6 +13,9 @@ query MyQuery {
 }
 `
 
+// const HEADER = `[float_column, int_column, text_column, time_column]`
+const HEADER = ['int_column', 'float_column', 'time_column', 'text_column']
+
 describe('data-api-download', function () {
   it('should return JSON when no format parameter is passed', function (done) {
     request(app)
@@ -88,6 +91,12 @@ describe('data-api-download', function () {
         )
         assert(res.header['content-type'] == 'text/csv; charset=utf-8')
         // check that is a CSV
+        const pipeSeparated = res.text
+          .split('\n')
+          .filter((line) => line.length > 0)
+          .every((line) => line.includes(','))
+        // console.log('pipe Separated = ', pipeSeparated)
+        assert(pipeSeparated)
         done()
       })
   })
@@ -110,6 +119,52 @@ describe('data-api-download', function () {
         )
         assert(res.header['content-type'] == 'text/csv; charset=utf-8')
         // check that is a pipe-separated-CSV
+        const pipeSeparated = res.text
+          .split('\n')
+          .filter((line) => line.length > 0)
+          .every((line) => line.includes('|'))
+        // console.log('pipe Separated = ', pipeSeparated)
+        assert(pipeSeparated)
+
+        done()
+      })
+  })
+
+  it('should return columns in specified ORDER when adding headers to the call', function (done) {
+    request(app)
+      .post('/v1/download?format=csv')
+      .send({
+        query: QUERY,
+        header: HEADER,
+      })
+      .expect(200)
+      .end(function (err, res) {
+        console.log('ERROR = ', err)
+        // console.log('response TEXT: ', res.text)
+        // console.log('response BODY: ', res.body)
+        console.log(res.header)
+        assert(
+          res.header['content-disposition'] ==
+            'attachment; filename="download.csv";'
+        )
+        assert(res.header['content-type'] == 'text/csv; charset=utf-8')
+        // check that the header is ordered
+        const headerLine = res.text.split('\n')[0].split(',')
+        // console.log('header line = ', headerLine, HEADER)
+        assert(headerLine.length === HEADER.length)
+        const matchingHeader = headerLine
+          .map(function (e, i) {
+            // console.log(
+            //   'matching header',
+            //   e.trim() == HEADER[i].trim(),
+            //   e,
+            //   HEADER[i]
+            // )
+            return e.trim() == HEADER[i].trim()
+          })
+          .every((e) => e == true)
+
+        assert(matchingHeader)
 
         done()
       })
