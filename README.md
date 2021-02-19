@@ -117,3 +117,7 @@ Can be deployed as a usual docker container. An environement for this microservi
 1. postgres database
 2. hasura
 3. environment variables (see [.env.example](/.env.example))
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](License) file for details
