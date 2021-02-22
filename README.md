@@ -29,7 +29,7 @@ GraphQL Endpoint exposes the hasura GraphQL API.
 
 For the GraphQL documentation please refer to [Hasura Documentation](https://hasura.io/docs/1.0/graphql/core/index.html)
 
-### datastore_search endpoing
+### datastore_search endpoint
 
 #### Parameters
 
