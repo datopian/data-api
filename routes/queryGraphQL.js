@@ -1,4 +1,4 @@
-const { request, gql } = require('graphql-request')
+const { request, gql, GraphQLClient } = require('graphql-request')
 const { app } = require('../app')
 
 async function queryForData(schema, params) {
@@ -28,9 +28,8 @@ async function queryForData(schema, params) {
   }
   // console.log("Variables = "+ JSON.stringify(variables))
   const query = buildParametrableQuery(schema, queryParams)
-  return request(process.env.HASURA_URL + '/v1/graphql', query, variables).then(
-    (resp) => resp[params.resource_id]
-  )
+  return request(process.env.HASURA_URL + '/v1/graphql', query, variables)
+    .then((resp) => resp[params.resource_id])
 }
 
 /**
