@@ -78,9 +78,6 @@ function buildParametrableQuery(schema, params) {
   return gql`query ${params.resource_id}_query (${variablesDeclaration}) { 
     ${params.resource_id}(
       limit: ${limit},
-      where: {
-        ${whereFields.join(' ')}
-      }, 
       offset: $offset,
       ${extraFields}
       ) {

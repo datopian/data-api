@@ -3,7 +3,7 @@ var router = express.Router()
 const { Readable, finished } = require('stream')
 const { once } = require('events')
 
-const { request, gql } = require('graphql-request')
+const { request, gql, GraphQLClient } = require('graphql-request')
 
 const { queryForData } = require('./queryGraphQL')
 const XLSX = require('xlsx')
@@ -27,11 +27,16 @@ async function getGraphQLTableSchema(resource_id) {
   }
 `
   // return request(`${process.env.HASURA_URL}/v1/graphql`, queryForSchema)
+  const graphQLClient = new GraphQLClient(
+    `${process.env.HASURA_URL}/v1/graphql`,
+    {
+      headers: {
+        'x-hasura-admin-secret': process.env.HASURA_GRAPHQL_ADMIN_SECRET,
+      },
+    }
+  )
   try {
-    const schemaPrep = await request(
-      `${process.env.HASURA_URL}/v1/graphql`,
-      queryForSchema
-    )
+    const schemaPrep = await graphQLClient.request(queryForSchema)
     //    console.log(JSON.stringify(schemaPrep, null, 2))  // TODO erase log
     schema = schemaPrep.__type
   } catch (e) {
@@ -90,8 +95,9 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
     // query for schema  -> this should be already in Frictionless format
     // const schema = await queryForSchema()
     const schema = await getGraphQLTableSchema(table)
-    // query for data -> basically the call to queryGraphQL
+    console.log(schema)
     const data = await queryForData(schema, req.query)
+    console.log(data.errors)
     /*TODO*/
     /* Auth handling  ... maybe JWT? */
     // Mandatory GET parameters check
@@ -99,7 +105,7 @@ router.get(`/${APP_VERSION}/datastore_search`, async function (req, res, next) {
     // response
     res.send({
       schema: beautifyGQLSchema(schema),
-      data: data,
+      data,
     })
   } catch (e) {
     console.error(e)

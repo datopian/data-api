@@ -17,7 +17,7 @@
     "express": "~4.16.1",
     "express-http-proxy": "^1.6.2",
     "graphql": "^15.3.0",
-    "graphql-request": "^3.1.0",
+    "graphql-request": "^5.1.0",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
     "node-fetch": "^2.6.1",
