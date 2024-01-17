@@ -167,7 +167,7 @@ router.post(`/${APP_VERSION}/download`, async function (req, res, next) {
         const ws = xlsxHeader
           ? XLSX.utils.json_to_sheet(gqlRes[k], { header: xlsxHeader })
           : XLSX.utils.json_to_sheet(gqlRes[k])
-        XLSX.utils.book_append_sheet(wb, ws, k)
+        XLSX.utils.book_append_sheet(wb, ws, k.slice(0, 31))
       })
       if (ext === 'tsv' || (ext === 'csv' && colSep != ',')) {
         res.set('Content-Type', 'text/csv')
