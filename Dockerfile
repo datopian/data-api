@@ -14,12 +14,12 @@ COPY . .
 
 EXPOSE 3000
 
-RUN yarn
+RUN yarn install --frozen-lockfile
 # If you are building your code for production
 # RUN npm ci --only=production
 
 RUN ["chmod", "+x", "./curl-wait-for-it.sh"]
 
-RUN ["yarn", "prettier", "--check", "."]
+RUN ["npx", "prettier@2.1.2", "--check", "."]
 
 CMD [ "yarn", "start" ]
